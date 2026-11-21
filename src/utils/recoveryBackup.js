@@ -21,8 +21,7 @@ function fromBase64(value) {
 }
 
 function makeRecoveryCode() {
-  const bytes = getCrypto().getRandomValues(new Uint8Array(8));
-  return 'H5LL10N-' + Array.from(getCrypto().getRandomValues(new Uint8Array(20)), byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+    return 'H5LL10N-' + Array.from(getCrypto().getRandomValues(new Uint8Array(20)), byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
 async function deriveKey(secret, salt) {
