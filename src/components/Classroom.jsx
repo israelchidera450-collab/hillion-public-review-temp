@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import './Classroom.css'
 import katex from 'katex'
@@ -1423,7 +1423,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
           {sections.length > 0 || liveSectionContent ? (
             <div className="lesson-content">
               {sections.map((section, index) => (
-                <React.Fragment key={section.id || index}>
+                <Fragment key={section.id || index}>
                 <article
                   className={`lesson-section lesson-section-${section.type || 'explanation'}`}
                 >
@@ -1482,7 +1482,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
                     </div>
                   </article>
                 ))}
-                </React.Fragment>
+                </Fragment>
               ))}
               {liveSectionContent && (
                 <article className="lesson-section lesson-section-explanation lesson-section-live">
