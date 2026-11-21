@@ -2358,6 +2358,7 @@ if (isClassroomOpen) {
       transcript={lessonTranscript}
       conversation={lessonConversation}
       sections={lessonSections}
+      clarifications={getActiveLesson()?.clarifications || []}
       liveSectionHeading={liveSectionHeading}
       liveSectionContent={liveSectionContent}
       loading={isLessonLoading}
