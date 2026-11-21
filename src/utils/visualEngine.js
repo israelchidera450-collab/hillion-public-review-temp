@@ -396,8 +396,11 @@ function createStructuredVisual(visual) {
   // dropping one part can change anatomy, apparatus, or vector relationships.
   if (elements.some(element => element === null)) return null;
   if (elements.filter(item => item.type === 'text').length < 1) return null;
+  const renderStyle = ['isometric-3d', 'technical-illustration', 'hand-drawn', 'flat'].includes(visual.renderStyle)
+    ? visual.renderStyle
+    : 'flat';
   return {
-    renderer: 'svg', kind: 'ai-structured-diagram',
+    renderer: 'svg', kind: 'ai-structured-diagram', renderStyle,
     title: String(visual.title || 'Educational diagram').slice(0, 120),
     description: String(visual.description || '').slice(0, 500),
     caption: String(visual.caption || '').slice(0, 300),
