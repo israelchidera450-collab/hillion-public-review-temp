@@ -1400,7 +1400,7 @@ Do not invent structures or relationships.
             role: 'user',
             content: 'Learning mode: ' + learningMode + '. Topic: ' + topic
           }
-        ], 400);
+        ], 1400);
 
         try {
           plan = parseJSON(outlineReply);
