@@ -171,24 +171,24 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
     let frame = 0;
     const placePen = () => {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      let lastText = null;
+      let lastVisibleRect = null;
       while (walker.nextNode()) {
-        if (walker.currentNode.nodeValue?.length) lastText = walker.currentNode;
+        const node = walker.currentNode;
+        if (!node.nodeValue?.length) continue;
+        const range = document.createRange();
+        const offset = Math.max(0, node.nodeValue.length - 1);
+        range.setStart(node, offset);
+        range.setEnd(node, Math.min(node.nodeValue.length, offset + 1));
+        const rect = range.getBoundingClientRect();
+        // Skip hidden MathML/accessibility text and zero-size formatting nodes.
+        if (rect.width > 0 && rect.height > 0) lastVisibleRect = rect;
       }
-      if (!lastText) {
+      if (!lastVisibleRect) {
         pen.style.opacity = '0';
         return;
       }
-      const range = document.createRange();
-      const offset = Math.max(0, lastText.nodeValue.length - 1);
-      range.setStart(lastText, offset);
-      range.setEnd(lastText, Math.min(lastText.nodeValue.length, offset + 1));
-      const rect = range.getBoundingClientRect();
+      const rect = lastVisibleRect;
       const rootRect = root.getBoundingClientRect();
-      if (!rect.width && !rect.height) {
-        pen.style.opacity = '0';
-        return;
-      }
       // Position the pen tip at the actual final rendered glyph, including
       // wrapped lines, lists, inline emphasis and KaTeX output.
       pen.style.left = `${rect.right - rootRect.left + root.scrollLeft - 3}px`;
