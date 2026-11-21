@@ -1538,3 +1538,15 @@
   touch-action: pan-x pan-y;
   overscroll-behavior: contain;
 }
+
+
+.selected-passage-context {
+  margin: 0 0 12px; padding: 11px 13px;
+  border: 1px solid #e7d58c; border-left: 4px solid #e3c34f;
+  border-radius: 12px; background: #fff9dc;
+}
+.selected-passage-context strong { display:block; color:#63521d; font-size:12px; margin-bottom:5px; }
+.selected-passage-context p { margin:0 0 7px; color:#49422e; font-size:13px; line-height:1.5; max-height:90px; overflow:auto; }
+.selected-passage-context button { border:0; background:transparent; color:#67531c; text-decoration:underline; padding:2px 0; font-size:12px; }
+.lesson-section-clarification { margin:18px 0; padding:15px 17px; border-left:4px solid #e4c44f; border-radius:12px; background:#fff9df; }
+.lesson-section-clarification h2 { color:#6d5718; }
