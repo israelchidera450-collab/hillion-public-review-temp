@@ -152,6 +152,7 @@ function renderInlineText(text) {
 function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
   const richContentRef = useRef(null);
   const penRef = useRef(null);
+  const frameRef = useRef(0);
 
   useEffect(() => {
     if (!isStreaming) return;
@@ -159,7 +160,6 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
     const pen = penRef.current;
     if (!root || !pen) return;
 
-    let frame = 0;
     const placePen = () => {
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       let lastVisibleRect = null;
@@ -195,8 +195,8 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
     };
 
     const schedule = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(placePen);
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = requestAnimationFrame(placePen);
     };
     schedule();
     const observer = new ResizeObserver(schedule);
@@ -205,7 +205,7 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
     board?.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(frameRef.current);
       observer.disconnect();
       board?.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
@@ -428,7 +428,7 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
 
 function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
   const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
