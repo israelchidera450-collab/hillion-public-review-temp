@@ -783,6 +783,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [zoom, setZoom] = useState(1)
   const [activeToolbarPanel, setActiveToolbarPanel] = useState(null)
   const [viewMode, setViewMode] = useState('1x')
+  const [voicePreference, setVoicePreference] = useState(() => localStorage.getItem('hillion_voice_preference') || 'neutral')
   const [isExpanded, setIsExpanded] = useState(false)
   const [isFollowingLive, setIsFollowingLive] = useState(true)
   const [showReturnToLive, setShowReturnToLive] = useState(false)
@@ -843,17 +844,22 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
         /^en(-|$)/i.test(voice.lang || '')
       );
 
-      const selected = preferences
-        .map(locale => {
-          const matches = englishVoices.filter(voice =>
-            (voice.lang || '').toLowerCase() === locale
-          );
-
-          return matches.find(voice => voice.localService) ||
-            matches[0] ||
-            null;
-        })
-        .find(Boolean);
+      const localeMatches = preferences.flatMap(locale =>
+        englishVoices.filter(voice => (voice.lang || '').toLowerCase() === locale)
+      );
+      const available = localeMatches.length ? localeMatches : englishVoices;
+      const nameMatches = voice => {
+        const name = String(voice.name || '').toLowerCase();
+        if (voicePreference === 'female') return /female|woman|zira|samantha|victoria|karen|moira|tessa|aria|jenny|susan/.test(name);
+        if (voicePreference === 'male') return /male|man|david|daniel|alex|george|james|guy|ryan|thomas/.test(name);
+        return false;
+      };
+      const selected = voicePreference === 'neutral'
+        ? (available.find(voice => voice.default && voice.localService) ||
+           available.find(voice => voice.default) ||
+           available.find(voice => voice.localService) || available[0] || null)
+        : (available.find(nameMatches) ||
+           available.find(voice => voice.localService) || available[0] || null);
 
       hillionVoiceRef.current = selected;
 
@@ -925,7 +931,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     if (speechQueueRef.current.length && !speechRef.current) {
       speakNextChunk();
     }
-  }, [liveSectionContent, loading]);
+  }, [liveSectionContent, loading, voicePreference]);
 
   const zoomIn = () => setZoom(value => Math.min(2, Number((value + 0.1).toFixed(1))))
   const zoomOut = () => setZoom(value => Math.max(0.5, Number((value - 0.1).toFixed(1))))
@@ -1403,6 +1409,26 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
           {activeToolbarPanel === 'more' && (
             <>
               <strong>More classroom options</strong>
+              <label className="voice-preference-control" htmlFor="hillion-voice-preference">Narration voice</label>
+              <select
+                id="hillion-voice-preference"
+                className="voice-preference-select"
+                value={voicePreference}
+                onChange={event => {
+                  const next = event.target.value;
+                  setVoicePreference(next);
+                  localStorage.setItem('hillion_voice_preference', next);
+                  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                  speechRef.current = null;
+                  speechQueueRef.current = [];
+                  speechIndexRef.current = 0;
+                  setIsSpeaking(false);
+                }}
+              >
+                <option value="female">Female voice</option>
+                <option value="male">Male voice</option>
+                <option value="neutral">Neutral / system default</option>
+              </select>
               <button onClick={resetZoom}>Reset board zoom to 100%</button>
               <button onClick={() => setIsTranscriptOpen(!isTranscriptOpen)}>Toggle live transcript</button>
               <button onClick={handleDownload}>Download lesson notes</button>
