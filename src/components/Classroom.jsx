@@ -1155,7 +1155,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     const board = boardRef.current;
     if (!board) return;
 
-    let touchStartY = 0;
+    const touchStartY = { current: 0 };
 
     const pauseFollowing = () => {
       setIsFollowingLive(false);
@@ -1173,13 +1173,13 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
         return;
       }
 
-      touchStartY = event.touches[0].clientY;
+      touchStartY.current = event.touches[0].clientY;
     };
 
     const handleTouchMove = (event) => {
       if (event.touches.length !== 1) return;
 
-      const movement = event.touches[0].clientY - touchStartY;
+      const movement = event.touches[0].clientY - touchStartY.current;
 
       if (movement > 8) {
         pauseFollowing();
