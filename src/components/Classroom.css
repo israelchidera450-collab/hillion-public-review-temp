@@ -1708,3 +1708,15 @@
   color: #263b32;
   font: inherit;
 }
+
+
+/* The pen's position is driven by the final rendered glyph in the lesson.
+   Remove decorative bouncing so it does not appear to dance independently. */
+.hillion-writing-pen {
+  animation: none !important;
+  transform: rotate(-8deg);
+  transition: left 55ms linear, top 55ms linear, opacity 80ms ease;
+}
+.hillion-writing-pen::after {
+  display: none;
+}
