@@ -1139,7 +1139,7 @@ Do not invent structures or relationships.
     setLessonDiagram(resumeData?.diagram || null);
     const generate = async (messages, maxTokens, onChunk, requireComplete = false, continuationDepth = 0) => {
       const requestController = new AbortController();
-      let timedOut = false;
+      const timeoutState = { timedOut: false };
       let reply = '';
 
       const abortFromLesson = () => {
@@ -1157,7 +1157,7 @@ Do not invent structures or relationships.
       controller.signal.addEventListener("abort", abortFromLesson, { once: true });
 
       const timeoutId = setTimeout(() => {
-        timedOut = true;
+        timeoutState.timedOut = true;
         console.warn('[HILLION DIAGNOSTIC] AI request timeout fired:', {
           time: new Date().toISOString(),
           timeoutMilliseconds: 1800000
@@ -1279,7 +1279,7 @@ Do not invent structures or relationships.
           throw new DOMException("Lesson interrupted", "AbortError");
         }
 
-        if (timedOut) {
+        if (timeoutState.timedOut) {
           throw new Error("The AI request exceeded its 30-minute safety limit. Your saved draft has been preserved. Please resume the lesson.");
         }
 
@@ -1387,7 +1387,7 @@ Do not invent structures or relationships.
               'If an accurate specific diagram cannot be described confidently, leave visualPlan empty. Never invent labels, measurements, equations, causal arrows or scientific structures.',
               'Return ONLY valid JSON:',
               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","renderStyle":"flat","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
-              'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+              'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {"type":"text","x":500,"y":100,"text":"Label"}.'
             ].join('\n')
           },
           {
