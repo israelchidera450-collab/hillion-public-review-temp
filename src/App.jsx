@@ -1381,7 +1381,9 @@ Do not invent structures or relationships.
             content: [
               'You are HILLION, an expert academic teacher.',
               'Identify the subject and create a logically ordered teaching outline.',
-              'Choose enough sections to cover the topic properly.',
+              'Choose enough sections to cover the entire topic, not an arbitrary fixed number.',
+              'For broad or multi-part topics, create as many logically distinct sections as necessary (often 8–14 or more); do not stop at five when important syllabus content remains.',
+              'Include a final synthesis/revision section only after all substantive concepts have been taught.',
               'Progress from foundations to advanced understanding.',
               'Include essential concepts, terminology, processes and applications.',
               'Do not write lesson explanations.',
@@ -1969,7 +1971,7 @@ Do not invent structures or relationships.
               ] : [])
             ].join('\n')
           }
-        ], 600, (chunk) => {
+        ], 1100, (chunk) => {
           liveDraftRef.current = {
             sectionIndex: index,
             heading: plannedSection.heading || 'Section ' + (index + 1),
