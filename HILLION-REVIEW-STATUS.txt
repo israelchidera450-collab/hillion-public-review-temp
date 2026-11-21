@@ -1,0 +1,35 @@
+HILLION SOURCE REVIEW — 15 NOVEMBER 2026
+
+Source archive: HILLION-native-ai-progress.zip supplied in this conversation.
+Current state: native inference integration implemented in source; compilation and physical-device verification pending. NOT release-complete.
+
+IMPLEMENTED IN THIS PASS
+1. Added HillionInferencePlugin.kt using the pinned llama.kt LlamaEngine API. It loads the app-managed GGUF, uses the GGUF chat template, streams token events, supports cancellation, serializes generation, and unloads native memory on model replacement/removal.
+2. Added src/utils/aiClient.js. Android uses the native plugin; browser/development retains the HTTP adapter. Native results are wrapped in the same OpenAI-compatible JSON/SSE response shapes used by the existing App.jsx parsers.
+3. Routed all three active AI request paths (chat, lesson generation, classroom follow-up) through the shared adapter.
+4. Replaced the Android lesson health preflight with a local-model availability check.
+5. Updated Settings model import/removal to release any loaded engine before replacing/removing the GGUF.
+6. Pinned tensai-app/llama.kt commit d3c306d60007a714d820cb50c76086bc07aec055. Added scripts/setup-native-ai.sh to fetch the pinned engine and bootstrap its JNI sources.
+7. Added Kotlin Gradle plugin 2.3.0, the native engine Gradle module, NDK 27.2.12479018 and CMake 3.31.6 provisioning to CI. Raised minSdk to 29 as required by the engine.
+
+SOURCE CHECKS
+- TypeScript JSX transpile syntax: App.jsx PASS; HomeDashboard.jsx PASS; aiClient.js PASS.
+- Shell syntax: scripts/setup-native-ai.sh PASS.
+- Android XML parse: 12 files PASS.
+- Workflow YAML parsed successfully (PyYAML 1.1 displays the YAML key `on` as boolean; the file itself uses standard GitHub Actions syntax).
+- ZIP integrity: to be checked after packaging.
+
+NOT YET VERIFIED
+- Kotlin/Gradle compilation: NOT RUN (no Android SDK/NDK or Gradle distribution cache in this environment).
+- Native llama.cpp CMake build: NOT RUN here.
+- Vite production build: NOT RUN (node_modules absent and npm cache empty).
+- APK build/install/device test: NOT RUN.
+- Termux-off standalone runtime: NOT VERIFIED.
+
+RELEASE GATE
+Install the CI-built APK on the Redmi 14C, import the GGUF, stop Termux and llama-server, then verify native model load, chat, full lesson streaming, cancellation, resume, background/foreground and cold restart. Only after those pass may HILLION be called standalone.
+
+OTHER KNOWN WORK
+- Narration remains browser speech synthesis; offline/native TTS still needs integration and device testing.
+- Visual engine subject coverage and diagram quality still need a separate cross-subject audit.
+- Memory pressure and sustained inference performance need testing on the actual Redmi 14C.

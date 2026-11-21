@@ -1,0 +1,21 @@
+HILLION SOURCE UPDATE — 14 NOVEMBER 2026
+
+This archive contains the active project with the classroom follow-up keyboard, Android native speech-recognition bridge, AI health preflight, configurable AI base URL, and Capacitor mixed-content configuration applied.
+
+IMPORTANT LIMITATION
+This update does NOT make HILLION a standalone offline AI app. The React app still calls a llama-server endpoint (default http://127.0.0.1:8080). A bundled/native llama.cpp runtime, GGUF import/download flow, and Android lifecycle service are still required. Do not describe this build as independent of Termux until those pieces are implemented and tested.
+
+VALIDATION PERFORMED
+- App.jsx and Classroom.jsx transpile successfully with JSX syntax checking.
+- The host-side production build could not be run because the uploaded node_modules contains an incompatible/incomplete native Rolldown/Vite installation. Reinstall dependencies on the target Termux environment before building.
+- No APK was built or device-tested as part of this update.
+
+APPLY ON THE PHONE
+1. Keep a backup of the current project before replacing anything.
+2. Extract this archive into a separate folder first, not over the working folder.
+3. In that extracted project, run: npm ci
+4. Then run: npm run build
+5. Then run: npx cap sync android
+6. Build/install the APK only after the build succeeds.
+
+The archive intentionally excludes node_modules, .git metadata, old backup folders, and the older nested duplicate project. package-lock.json is included so npm ci can reproduce the project's locked dependencies.

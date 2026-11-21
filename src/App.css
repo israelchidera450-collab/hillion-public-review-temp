@@ -1,0 +1,999 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #080b12;
+  color: #f5f7ff;
+  font-family: 'Inter', sans-serif;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: #080b12;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width: 245px;
+  background: #0d111c;
+  border-right: 1px solid #202638;
+  padding: 28px 18px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.brand-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #d9b56d, #8f6b31);
+  color: #080b12;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.brand h2 {
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+
+.brand span {
+  font-size: 10px;
+  color: #c5a568;
+  letter-spacing: 3px;
+}
+
+.new-lesson {
+  background: #d4ae68;
+  color: #10121a;
+  border: none;
+  padding: 14px;
+  border-radius: 9px;
+  font-weight: 700;
+  margin-bottom: 35px;
+}
+
+.side-heading {
+  font-size: 10px;
+  color: #687187;
+  letter-spacing: 2px;
+  margin: 20px 0 13px;
+}
+
+.side-link {
+  background: transparent;
+  border: none;
+  color: #9ba5ba;
+  text-align: left;
+  padding: 13px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.side-link.active {
+  background: #1a2232;
+  color: #d9b56d;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid #252c3b;
+  padding-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  background: #d4ae68;
+  color: #10121a;
+  width: 37px;
+  height: 37px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.sidebar-bottom strong {
+  font-size: 11px;
+  display: block;
+}
+
+.sidebar-bottom span {
+  font-size: 10px;
+  color: #737e93;
+}
+
+/* MAIN WORKSPACE */
+
+.workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  padding: 35px 40px;
+  border-bottom: 1px solid #202638;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.welcome {
+  color: #c5a568;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.topbar h1 {
+  font-size: 25px;
+  margin-top: 10px;
+}
+
+.status {
+  color: #d4ae68;
+  border: 1px solid #66502b;
+  padding: 9px 14px;
+  border-radius: 30px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #55d89b;
+  margin-right: 7px;
+}
+
+.content {
+  padding: 35px 40px;
+  flex: 1;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title h2 {
+  font-size: 17px;
+}
+
+.section-title p {
+  color: #7f899e;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+.section-title > span {
+  color: #7f899e;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+/* SUBJECTS */
+
+.subjects {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.subject-card {
+  position: relative;
+  background: #111725;
+  border: 1px solid #252e41;
+  border-radius: 12px;
+  padding: 18px 12px;
+  color: white;
+  text-align: left;
+  transition: 0.2s;
+}
+
+.subject-card.selected {
+  border-color: #d4ae68;
+  background: #1c202a;
+}
+
+.subject-card strong {
+  display: block;
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.subject-icon {
+  font-size: 22px;
+}
+
+.subject-arrow {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  color: #8490a7;
+}
+
+.green { color: #63d69c; }
+.orange { color: #f1a66e; }
+.blue { color: #71b8f5; }
+.purple { color: #b69af5; }
+.pink { color: #f08bb9; }
+
+/* LEARNING AREA */
+
+.learning-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0;
+}
+
+.whiteboard,
+.tutor-panel {
+  border-radius: 14px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.whiteboard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tutor-panel {
+  background: #111725;
+  border: 1px solid #252e41;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.whiteboard {
+  display: flex;
+  flex-direction: column;
+}
+
+.tutor-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* HILLION WHITEBOARD DESIGN */
+
+.board-header {
+  padding: 14px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.board-label {
+  color: #64748b;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.board-header h3 {
+  margin-top: 8px;
+  font-size: 17px;
+  color: #172033;
+}
+
+.board-live {
+  color: #16a36a;
+  font-size: 10px;
+}
+
+/* HILLION EXPANDABLE WHITEBOARD CONTAINER */
+
+.board-content {
+  width: 100%;
+  height: 85vh;
+  min-height: 700px;
+  display: block;
+  position: relative;
+  padding: 0;
+  text-align: left;
+  background: #ffffff;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.board-symbol {
+  font-size: 35px;
+  color: #d4ae68;
+  margin-bottom: 20px;
+}
+
+.board-content h2 {
+  font-size: 19px;
+  max-width: 330px;
+  color: #172033;
+}
+
+.board-content p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.8;
+  max-width: 340px;
+  margin-top: 12px;
+}
+
+.board-tools {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.board-tools span {
+  border: 1px solid #e2e8f0;
+  padding: 8px 11px;
+  border-radius: 7px;
+  color: #475569;
+  font-size: 10px;
+}
+
+.board-footer {
+  border-top: 1px solid #eeeeee;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+  color: #64748b;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+/* AI TUTOR */
+
+.tutor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid #252e41;
+}
+
+.tutor-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #d9b56d, #8f6b31);
+  color: #10121a;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.tutor-header h3 {
+  font-size: 14px;
+}
+
+.tutor-header span {
+  color: #c5a568;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.chat-area {
+  min-height: 300px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.welcome-message {
+  text-align: center;
+  padding-top: 25px;
+}
+
+.hello-icon {
+  color: #d4ae68;
+  font-size: 32px;
+}
+
+.welcome-message h3 {
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+.welcome-message p {
+  color: #8994a9;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 10px 0 20px;
+}
+
+.suggestion {
+  background: #1b2434;
+  border: 1px solid #303b50;
+  padding: 11px;
+  border-radius: 8px;
+  margin-top: 9px;
+  color: #c4cede;
+  font-size: 11px;
+}
+
+.user-message {
+  background: #27364b;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.chat-input {
+  margin: 10px 15px;
+  padding: 7px;
+  border: 1px solid #364158;
+  border-radius: 9px;
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.chat-input button {
+  background: #d4ae68;
+  color: #10121a;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 7px;
+  font-weight: 800;
+  font-size: 19px;
+}
+
+.chat-note {
+  text-align: center;
+  color: #68758c;
+  font-size: 9px;
+  padding: 5px 10px 15px;
+}
+
+/* FOOTER */
+
+.footer {
+  border-top: 1px solid #202638;
+  padding: 18px 40px;
+  display: flex;
+  justify-content: space-between;
+  color: #68758c;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+/* MOBILE DESIGN */
+
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+
+  .topbar {
+    padding: 25px 18px;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+  }
+
+  .content {
+    padding: 25px 15px;
+  }
+
+  .subjects {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .subject-card:last-child {
+    grid-column: span 2;
+  }
+
+  .learning-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title > span {
+    display: none;
+  }
+
+  .footer {
+    padding: 15px;
+    font-size: 8px;
+    gap: 10px;
+  }
+}
+/* HILLION INTERACTIVE WHITEBOARD */
+
+/* HILLION WHITEBOARD TOOLBAR */
+
+.board-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.board-toolbar button {
+  padding: 9px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.board-toolbar button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.board-toolbar button.tool-active {
+  background: #f5d76e;
+  color: #172033;
+  border-color: #e5bd45;
+  font-weight: 700;
+}
+
+.board-content {
+  position: relative;
+  display: block;
+  min-height: 0;
+  padding: 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* HILLION MAIN TEACHING CANVAS */
+
+.drawing-canvas {
+  display: block;
+  width: 100%;
+  height: 1500px;
+min-height: 1500px;
+  background: #ffffff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.board-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  color: #64748b;
+  text-align: center;
+}
+.board-empty-hint span {
+  font-size: 35px;
+  color: #c49b50;
+}
+
+.board-empty-hint strong {
+  font-size: 17px;
+  margin-top: 8px;
+  color: #334155;
+}
+
+.board-empty-hint p {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+@media (max-width: 600px) {
+  .drawing-canvas {
+    height: 340px;
+  }
+
+  .board-toolbar {
+    gap: 6px;
+    padding: 9px;
+  }
+
+  .board-toolbar button {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+.text-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: #172033;
+  border: 1px solid #c9a45c;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.text-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.text-controls input[type="color"] {
+  width: 35px;
+  height: 30px;
+  border: none;
+  background: transparent;
+}
+
+.text-controls input[type="range"] {
+  width: 75px;
+  accent-color: #c9a45c;
+}
+/* HILLION PREMIUM NOTEBOOK THEME */
+
+.whiteboard {
+  background: #F5F4F1;
+  border: 1px solid #dedbd3;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.board-header {
+  background: #F5F4F1;
+  border-bottom: 1px solid #dedbd3;
+  color: #2F2F2F;
+}
+
+.board-header h3 {
+  color: #2F2F2F;
+  font-family: 'Caveat', cursive;
+  font-size: 28px;
+}
+
+.board-label {
+  color: #878787;
+}
+
+.board-live {
+  color: #6b9c7b;
+}
+
+.board-content {
+  background-color: #F5F4F1;
+  background-image:
+    radial-gradient(rgba(130,120,100,0.08) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+}
+
+.drawing-canvas {
+  background: #F5F4F1;
+}
+
+.board-toolbar {
+  background: #eeece6;
+  border-bottom: 1px solid #dedbd3;
+}
+
+.board-toolbar button {
+  background: #ffffff;
+  color: #2F2F2F;
+  border-color: #dedbd3;
+}
+
+.board-toolbar button.tool-active {
+  background: #CBE9D6;
+  color: #2F2F2F;
+  border-color: #9cc9ad;
+}
+
+.board-footer {
+  background: #F5F4F1;
+  color: #878787;
+  border-top: 1px solid #dedbd3;
+}
+
+/* HILLION AI TUTOR LOADING SCREEN */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #f8f5ed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  animation: splashFadeIn 0.5s ease;
+}
+
+.splash-icon {
+  width: 190px;
+  height: 190px;
+  border-radius: 38px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+
+.splash-highlight {
+  position: absolute;
+  width: 100%;
+  height: 43px;
+  background: #ffdc32;
+  top: 73px;
+  left: 0;
+}
+
+.splash-icon h1 {
+  position: relative;
+  z-index: 2;
+  color: #071a36;
+  font-size: 29px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.splash-icon span {
+  position: relative;
+  z-index: 2;
+  color: #071a36;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 5px;
+  margin-top: 7px;
+}
+
+@keyframes splashFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* HILLION WHITEBOARD ZOOM DISPLAY */
+
+.zoom-display {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 55px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #172033;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+/* HILLION DEDICATED CLASSROOM */
+
+.classroom-screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  background: #ffffff;
+  color: #101828;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.classroom-header {
+  width: 100%;
+  min-height: 65px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.classroom-header button {
+  border: none;
+  background: #f1f3f5;
+  color: #101828;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.classroom-header span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #172554;
+}
+
+.classroom-board {
+  flex: 1;
+  width: 100%;
+  padding: 35px 24px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.classroom-board h1 {
+  font-size: 30px;
+  color: #172554;
+  margin-bottom: 20px;
+}
+
+.classroom-board p {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #374151;
+}
+
+/* HILLION LESSON PREPARATION SCREEN */
+
+.preparing-screen {
+  position: fixed;
+  inset: 0;
+  min-height: 100dvh;
+  background: #F9F8F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10000;
+  color: #25251F;
+}
+
+.preparing-card {
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.preparing-logo {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 30px;
+  background: #17243B;
+  border: 1px solid #D8B65E;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E9D4A3;
+  font-size: 38px;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(23, 36, 59, 0.10);
+  animation: preparing-pulse 2s ease-in-out infinite;
+}
+
+.preparing-card h1 {
+  color: #25251F;
+  font-size: 25px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.preparing-card p {
+  color: #77746B;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.preparing-dots {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  margin-bottom: 24px;
+}
+
+.preparing-dots span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #D8B65E;
+  animation: preparing-bounce 1.2s ease-in-out infinite;
+}
+
+.preparing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.preparing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.preparing-card small {
+  color: #969185;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+@keyframes preparing-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.7;
+  }
+}
+
+@keyframes preparing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}

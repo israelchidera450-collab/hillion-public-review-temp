@@ -1,0 +1,92 @@
+name: Build HILLION Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glslc
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.31.6"
+
+      - name: Bootstrap pinned on-device AI engine
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: bash scripts/setup-native-ai.sh
+
+      - name: Configure runner Android SDK path
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web application
+        run: npm run build
+
+      - name: Synchronise Capacitor
+        run: npx cap sync android
+
+      - name: Restore permanent Android debug signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p "$HOME/.android"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+
+      - name: Verify restored permanent signing key
+        run: |
+          EXPECTED="62:6D:43:FD:4D:92:B8:0D:A1:DF:CA:EA:2D:B7:69:7C:CE:2E:D8:2E:6D:86:32:B6:D7:3A:FD:63:5A:41:90:EA"
+          ACTUAL="$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -alias androiddebugkey -storepass android | awk -F'SHA256: ' '/SHA256:/ {print $2; exit}')"
+          echo "Restored key SHA256: $ACTUAL"
+          test "$ACTUAL" = "$EXPECTED" || { echo "ERROR: Signing key mismatch"; exit 1; }
+
+      - name: Build debug APK
+        working-directory: android
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --max-workers=2
+
+      - name: Verify APK signing fingerprint
+        run: |
+          EXPECTED="626D43FD4D92B80DA1DFCAEA2DB7697CCE2ED82E6D8632B6D73AFD635A4190EA"
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          ACTUAL="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | awk -F': ' '/Signer #1 certificate SHA-256 digest/ {gsub(":","",$2); print toupper($2)}')"
+          echo "APK signer fingerprint: $ACTUAL"
+          test "$ACTUAL" = "$EXPECTED" || { echo "ERROR: APK signing fingerprint mismatch"; exit 1; }
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HILLION-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

@@ -1,0 +1,1540 @@
+.classroom-screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #faf9f6;
+  color: #242424;
+  z-index: 9999;
+}
+
+.classroom-header {
+  flex-shrink: 0;
+  min-height: 58px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #eeeae3;
+}
+
+.classroom-header button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: #f3f2ef;
+  font-size: 20px;
+}
+
+.classroom-header span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #343434;
+}
+
+.classroom-board {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 15px 30px;
+  background: #f7f6f1;
+}
+
+.board-paper {
+  width: 100%;
+  min-height: 100%;
+  padding: 22px 18px;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.board-paper h1 {
+  margin: 0 0 20px;
+  color: #252525;
+  font-size: 25px;
+  line-height: 1.3;
+  font-weight: 750;
+}
+
+.lesson-content {
+  white-space: pre-wrap;
+  font-size: 16px;
+  line-height: 1.85;
+  color: #414141;
+}
+
+.loading-message {
+  font-size: 15px;
+  color: #777;
+}
+
+.transcript-toggle {
+  position: absolute;
+  right: 18px;
+  bottom: calc(12% + 18px);
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #333;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+  font-size: 20px;
+  z-index: 5;
+}
+
+.transcript-panel {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12% + 68px);
+  max-height: 35%;
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
+  z-index: 4;
+}
+
+.transcript-panel strong {
+  font-size: 14px;
+}
+
+.transcript-panel p {
+  font-size: 13px;
+  color: #666;
+}
+
+.floating-controls {
+  flex-shrink: 0;
+  min-height: 82px;
+  height: 12%;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  background: #fff;
+  border-top: 1px solid #eeeae3;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.05);
+  z-index: 6;
+}
+
+.avatar-control {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: #f2eee8;
+  font-size: 25px;
+}
+
+.playback-bar {
+  flex: 1;
+  min-width: 0;
+  max-width: 215px;
+  height: 43px;
+  padding: 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 30px;
+  background: #f6f6f6;
+  border: 1px solid #eee;
+}
+
+.playback-bar button {
+  width: 28px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #303030;
+  font-size: 18px;
+}
+
+.keyboard-control {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 11px;
+  background: #f4f4f4;
+  font-size: 19px;
+}
+
+.microphone-control {
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  border: none;
+  border-radius: 50%;
+  background: #e53935;
+  color: white;
+  font-size: 24px;
+}
+
+.microphone-control.mic-active {
+  background: #b71c1c;
+  box-shadow: 0 0 0 5px rgba(229, 57, 53, 0.15);
+}
+
+@media (max-width: 380px) {
+  .floating-controls {
+    gap: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .avatar-control {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .microphone-control {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .playback-bar button {
+    width: 24px;
+    font-size: 16px;
+  }
+
+  .keyboard-control {
+    flex-basis: 36px;
+    width: 36px;
+  }
+}
+
+/* NEW CLASSROOM CONTROL DESIGN */
+
+.floating-controls {
+  gap: 6px;
+  justify-content: space-between;
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+.avatar-control {
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: #DDF2D9;
+}
+
+.avatar-control svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.avatar-badge {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+  width: 19px;
+  height: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: white;
+  color: #222;
+  font-size: 13px;
+  font-weight: bold;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.round-control {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #171717;
+  box-shadow: 0 2px 7px rgba(0,0,0,0.07);
+}
+
+.round-control svg {
+  width: 100%;
+  height: 100%;
+}
+
+.round-control span {
+  font-size: 18px;
+}
+
+.microphone-control {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e53935;
+}
+
+.microphone-control svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 380px) {
+  .floating-controls {
+    gap: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .avatar-control {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .round-control {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+  }
+
+  .microphone-control {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
+    padding: 12px;
+  }
+}
+
+/* EXPANDABLE HILLION WHITEBOARD */
+
+.classroom-board {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: 18px 14px 30px;
+  background: #f7f6f1;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.board-paper {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  height: auto;
+  padding: 24px 20px 45px;
+  box-sizing: border-box;
+  overflow: visible;
+  border-radius: 16px;
+  background: #fffefa;
+}
+
+.board-paper h1 {
+  overflow-wrap: anywhere;
+}
+
+.lesson-content {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.85;
+  padding-bottom: 30px;
+}
+
+
+/* HILLION LIVE THINKING INDICATOR */
+
+.hillion-thinking {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 16px 0;
+  color: #17243B;
+  font-size: 14px;
+}
+
+.hillion-thinking small {
+  color: #77746B;
+  font-size: 12px;
+}
+
+.thinking-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.thinking-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #C5A45B;
+  animation: hillion-thinking-pulse 1.2s infinite ease-in-out;
+}
+
+.thinking-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes hillion-thinking-pulse {
+  0%, 60%, 100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* HILLION STRUCTURED EDUCATIONAL WHITEBOARD */
+
+.lesson-section {
+  margin: 0 0 25px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid #EAE7DE;
+}
+
+.lesson-section h2 {
+  margin: 0 0 10px;
+  color: #243957;
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 750;
+}
+
+.lesson-section-content {
+  color: #414139;
+  font-size: 16px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lesson-section-definition {
+  padding: 15px;
+  background: #F0F3F8;
+  border-left: 4px solid #526F9B;
+  border-radius: 5px 10px 10px 5px;
+}
+
+.lesson-section-definition h2 {
+  color: #304F79;
+}
+
+.lesson-section-key_point {
+  padding: 15px;
+  background: #F8F3E7;
+  border-left: 4px solid #D5AD55;
+  border-radius: 5px 10px 10px 5px;
+}
+
+.lesson-section-key_point h2 {
+  color: #87651F;
+}
+
+.lesson-section-example {
+  padding: 15px;
+  background: #EDF4EE;
+  border-left: 4px solid #719779;
+  border-radius: 5px 10px 10px 5px;
+}
+
+.lesson-section-example h2 {
+  color: #416B49;
+}
+
+.lesson-section-formula {
+  padding: 15px;
+  background: #F1EEF8;
+  border-left: 4px solid #8770B2;
+  border-radius: 5px 10px 10px 5px;
+}
+
+.lesson-section-formula h2 {
+  color: #65518D;
+}
+
+.lesson-section-summary {
+  padding: 15px;
+  background: #F5F1E9;
+  border-left: 4px solid #B69A6B;
+  border-radius: 5px 10px 10px 5px;
+}
+
+
+/* HILLION EDUCATIONAL TYPOGRAPHY */
+
+.board-paper {
+  color: #34352F;
+  -webkit-font-smoothing: antialiased;
+}
+
+.board-paper h1 {
+  color: #253954;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.35;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #E9E5DA;
+}
+
+.lesson-section {
+  margin-bottom: 28px;
+}
+
+.lesson-section h2 {
+  letter-spacing: -0.2px;
+}
+
+.lesson-section-content {
+  font-size: 16px;
+  line-height: 1.9;
+  letter-spacing: 0.05px;
+}
+
+
+/* LESSON SUBJECT LABEL */
+
+.lesson-subject {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #EEF1F6;
+  color: #405B7D;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+
+.lesson-loading-board {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+  color: #414139;
+}
+
+.lesson-loading-spinner {
+  width: 38px;
+  height: 38px;
+  border: 4px solid #E8EAF0;
+  border-top-color: #526F9B;
+  border-radius: 50%;
+  animation: hillion-board-spin 0.9s linear infinite;
+  margin-bottom: 22px;
+}
+
+.lesson-loading-board h2 {
+  color: #253954;
+  font-size: 21px;
+  margin-bottom: 12px;
+}
+
+.lesson-loading-board p {
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 420px;
+}
+
+.lesson-loading-board strong {
+  color: #526F9B;
+  font-size: 17px;
+  margin: 12px 0;
+}
+
+.lesson-loading-board small {
+  color: #858585;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+@keyframes hillion-board-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* HILLION WHITEBOARD ZOOM TOOLBAR */
+.classroom-zoom-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 9px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e9e9e9;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.classroom-zoom-toolbar button {
+  min-width: 40px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 11px;
+  background: #f7f7f7;
+  color: #222222;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.65);
+}
+
+.classroom-zoom-toolbar button:nth-child(2) {
+  min-width: 76px;
+  font-size: 13px;
+}
+
+.classroom-zoom-toolbar button:active {
+  background: #e8e8e8;
+  transform: scale(0.94);
+}
+
+.classroom-zoom-toolbar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.classroom-board {
+  min-width: 0;
+  min-height: 0;
+}
+
+
+/* HILLION CLASSROOM TOP TOOLBAR */
+.classroom-header {
+  gap: 5px;
+  flex-wrap: nowrap;
+}
+
+.classroom-header button {
+  flex-shrink: 0;
+  min-width: 34px;
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #242424;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.7);
+}
+
+.classroom-header button:active,
+.classroom-header button:focus-visible {
+  background: #eeeeee;
+  outline: none;
+}
+
+.toolbar-panel {
+  position: absolute;
+  top: 65px;
+  right: 10px;
+  z-index: 10002;
+  width: min(280px, calc(100vw - 24px));
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toolbar-panel strong {
+  padding: 5px 7px 10px;
+  color: #222222;
+  font-size: 14px;
+}
+
+.toolbar-panel p {
+  margin: 4px 7px;
+  color: #666666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.toolbar-panel button {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid #eeeeee;
+  border-radius: 9px;
+  background: #f8f8f8;
+  color: #292929;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.toolbar-panel button:active,
+.toolbar-panel button.toolbar-option-active {
+  background: #e9e9e9;
+}
+
+@media (max-width: 420px) {
+  .classroom-header {
+    gap: 2px;
+  }
+
+  .classroom-header button {
+    min-width: 29px;
+    padding: 4px;
+    font-size: 14px;
+  }
+
+  .classroom-header span {
+    font-size: 11px;
+  }
+}
+
+
+/* HILLION LIVE CONVERSATION TRANSCRIPT */
+.transcript-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.transcript-entry {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.transcript-user {
+  align-self: flex-end;
+  background: #f4edda;
+}
+
+.transcript-hillion {
+  align-self: flex-start;
+  background: #f5f5f2;
+}
+
+.transcript-speaker {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+}
+
+.transcript-entry p {
+  margin: 0;
+  color: #292929;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.transcript-status {
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+  font-size: 11px;
+  color: #888;
+}
+
+/* HILLION STRUCTURED LESSON PRESENTATION */
+
+.lesson-rich-content {
+  width: 100%;
+  color: #37372f;
+  font-family: "Segoe Print", "Comic Sans MS", cursive, sans-serif;
+  font-size: 15px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.lesson-inline-heading {
+  margin: 22px 0 10px;
+  color: #253954;
+  font-family: "Segoe Print", "Comic Sans MS", cursive, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.lesson-paragraph {
+  margin: 0 0 15px;
+  white-space: normal;
+}
+
+.lesson-definition-text {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-left: 4px solid #719779;
+  border-radius: 5px 10px 10px 5px;
+  background: #edf4ee;
+}
+
+.lesson-rich-content strong {
+  color: #304f79;
+  font-weight: 800;
+}
+
+.lesson-rich-content mark {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #fff0a8;
+  color: #403716;
+}
+
+.lesson-rich-content code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #f1eef8;
+  color: #65518d;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.lesson-bullet-list,
+.lesson-numbered-list {
+  margin: 12px 0 18px;
+  padding-left: 26px;
+}
+
+.lesson-bullet-list li,
+.lesson-numbered-list li {
+  margin-bottom: 9px;
+  padding-left: 5px;
+}
+
+.lesson-bullet-list li::marker {
+  color: #719779;
+}
+
+.lesson-numbered-list li::marker {
+  color: #526f9b;
+  font-weight: 800;
+}
+
+.lesson-table-wrapper {
+  width: 100%;
+  margin: 18px 0;
+  overflow-x: auto;
+  border: 1px solid #e7e3d8;
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lesson-table {
+  width: 100%;
+  min-width: 360px;
+  border-collapse: collapse;
+  background: #fffefa;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.lesson-table th {
+  padding: 11px 10px;
+  background: #eef1f6;
+  color: #304f79;
+  text-align: left;
+  font-weight: 800;
+}
+
+.lesson-table td {
+  padding: 10px;
+  border-top: 1px solid #eae7de;
+  text-align: left;
+  vertical-align: top;
+}
+
+.lesson-table tbody tr:nth-child(even) {
+  background: #faf8f2;
+}
+
+
+
+/* HILLION MATHEMATICS */
+.lesson-rich-content .lesson-inline-math,
+.lesson-rich-content .lesson-display-math {
+  font-family: "KaTeX_Main", "Times New Roman", serif;
+  color: #202d40;
+}
+
+.lesson-rich-content .lesson-inline-math .katex {
+  font-size: 1.08em;
+}
+
+.lesson-display-math-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 18px 0;
+  padding: 12px 8px;
+  overflow-x: auto;
+  text-align: center;
+  border-radius: 10px;
+  background: #f5f4ee;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lesson-display-math-wrapper .katex-display {
+  margin: 0.35em 0;
+}
+
+.lesson-display-math-wrapper .katex {
+  font-size: 1.12em;
+}
+
+.lesson-rich-content .katex {
+  font-family: "KaTeX_Main", "Times New Roman", serif;
+}
+
+
+/* HILLION: RETURN TO LIVE LESSON */
+.return-to-live-button {
+  position: absolute;
+  left: 16px;
+  bottom: calc(12% + 18px);
+  z-index: 7;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid #e8e4dc;
+  border-radius: 24px;
+  background: #fffefa;
+  color: #17243b;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.return-to-live-button:active {
+  transform: scale(0.97);
+}
+
+/* LIVE VOICE PRESENCE — glow is driven by SpeechSynthesis events */
+.avatar-control {
+  overflow: visible;
+  box-shadow: 0 0 0 2px rgba(67, 160, 91, 0.12);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.avatar-control.avatar-speaking {
+  animation: hillion-voice-glow 1.65s ease-in-out infinite;
+}
+
+.avatar-control.avatar-speaking svg {
+  filter: drop-shadow(0 0 5px rgba(41, 210, 111, 0.8));
+}
+
+.round-control.narration-active {
+  color: #16864b;
+  background: #e9f8ee;
+  box-shadow: 0 0 0 3px rgba(46, 190, 105, 0.13);
+}
+
+@keyframes hillion-voice-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(44, 177, 91, 0.2), 0 0 8px rgba(35, 195, 91, 0.22);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(44, 177, 91, 0.17), 0 0 19px rgba(35, 195, 91, 0.58);
+    transform: scale(1.035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-control.avatar-speaking {
+    animation: none;
+    box-shadow: 0 0 0 5px rgba(35, 195, 91, 0.35), 0 0 15px rgba(35, 195, 91, 0.45);
+  }
+}
+
+/* Voice presence: soft green luminous ring, active only during real speech. */
+.avatar-control {
+  position: relative;
+  isolation: isolate;
+}
+
+.avatar-control::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border: 1px solid rgba(36, 173, 91, 0.18);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(48, 211, 113, 0.08), rgba(48, 211, 113, 0));
+  opacity: 0.7;
+  transition: opacity 180ms ease, box-shadow 180ms ease;
+}
+
+.avatar-control.avatar-speaking::before {
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(35, 205, 103, 0.48), 0 0 24px rgba(35, 205, 103, 0.24);
+  animation: hillion-voice-ring 1.65s ease-in-out infinite;
+}
+
+@keyframes hillion-voice-ring {
+  0%, 100% { transform: scale(0.96); opacity: 0.68; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+.input-tool:active {
+  background: #ece8dc;
+  transform: scale(0.96);
+}
+
+.input-tool:focus-visible,
+.start-button:focus-visible {
+  outline: 2px solid #b89436;
+  outline-offset: 3px;
+}
+
+
+/* Automatically generated educational lesson diagrams */
+.lesson-diagram {
+  width: 100%;
+  margin: 20px auto 28px;
+  padding: 16px 10px;
+  border: 1px solid #dce9dc;
+  border-radius: 16px;
+  background: #fbfef9;
+  overflow: hidden;
+}
+
+.lesson-diagram h2 {
+  margin: 0 0 8px;
+  color: #244c35;
+  font-size: 20px;
+  text-align: center;
+}
+
+.lesson-diagram-description {
+  margin: 0 auto 12px;
+  max-width: 600px;
+  color: #52665a;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.lesson-diagram-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 720px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+@media (max-width: 480px) {
+  .lesson-diagram {
+    padding: 12px 5px;
+  }
+
+  .lesson-diagram h2 {
+    font-size: 18px;
+  }
+
+  .lesson-diagram-svg {
+    max-height: 650px;
+  }
+}
+
+/* HILLION BOARD CONTENT STYLING */
+.handwriting-content {
+  position: relative;
+}
+
+.handwriting-heading {
+  min-height: 1.3em;
+}
+
+/* HILLION EDUCATIONAL DIAGRAM ZOOM */
+.lesson-diagram-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.lesson-diagram-heading h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+.diagram-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.diagram-zoom-controls button {
+  min-width: 36px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #d5e4d5;
+  border-radius: 9px;
+  background: #fff;
+  color: #285b3b;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.diagram-zoom-controls button:disabled {
+  opacity: 0.4;
+}
+
+.lesson-diagram-viewport {
+  width: 100%;
+  max-height: 620px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lesson-diagram-svg {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+}
+
+@media (max-width: 380px) {
+  .floating-controls .handwriting-toggle {
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .diagram-zoom-controls button {
+    min-width: 32px;
+    height: 32px;
+  }
+}
+
+/* HILLION LIVE TEACHING PEN */
+.hillion-writing-pen {
+  display: inline-block;
+  margin-left: 7px;
+  color: #238b57;
+  font-family: "Segoe UI Symbol", sans-serif;
+  font-size: 25px;
+  line-height: 1;
+  vertical-align: -3px;
+  transform-origin: 20% 80%;
+  animation: hillion-pen-writing 0.75s ease-in-out infinite;
+  filter: drop-shadow(0 1px 2px rgba(35, 139, 87, 0.25));
+}
+
+@keyframes hillion-pen-writing {
+  0%, 100% {
+    transform: rotate(-12deg) translateY(0);
+  }
+  50% {
+    transform: rotate(7deg) translateY(-3px);
+  }
+}
+
+/* HILLION REALISTIC TEACHING PEN */
+.hillion-writing-pen {
+  display: inline-flex;
+  width: 43px;
+  height: 25px;
+  margin-left: 5px;
+  vertical-align: -6px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: hillion-pen-tracing 0.55s ease-in-out infinite;
+}
+
+.hillion-writing-pen svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hillion-writing-pen::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 2px;
+  background: #30343B;
+  right: 0;
+  bottom: 1px;
+  border-radius: 2px;
+  opacity: 0.7;
+  animation: hillion-ink-trail 0.55s ease-in-out infinite;
+}
+
+@keyframes hillion-pen-tracing {
+  0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+  35% { transform: translate(3px, -1px) rotate(1deg); }
+  70% { transform: translate(6px, 0) rotate(-2deg); }
+}
+
+@keyframes hillion-ink-trail {
+  0%, 100% { width: 4px; opacity: 0.35; }
+  50% { width: 13px; opacity: 0.8; }
+}
+
+
+/* Section-specific educational image assets */
+.lesson-section-visual-image {
+  width: 100%;
+  max-width: 720px;
+  margin: 22px auto 28px;
+  padding: 12px;
+  border: 1px solid #e4e0d5;
+  border-radius: 14px;
+  background: #fffefb;
+  text-align: center;
+}
+
+.lesson-section-visual-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 680px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.lesson-section-visual-image figcaption {
+  margin-top: 10px;
+  color: #526052;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* HILLION SECTION-BASED SVG ILLUSTRATIONS */
+
+.lesson-visual-illustration {
+  width: 100%;
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 14px;
+  border: 1px solid #dce6da;
+  border-radius: 16px;
+  background: #fffefb;
+  overflow: hidden;
+}
+
+.lesson-visual-description {
+  color: #52665a;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  margin: 8px auto 14px;
+}
+
+.lesson-visual-viewport {
+  width: 100%;
+  max-height: 680px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lesson-visual-svg {
+  display: block;
+  height: auto;
+  min-width: 100%;
+  margin: 0 auto;
+}
+
+.lesson-visual-caption {
+  margin-top: 12px;
+  color: #526052;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .lesson-visual-illustration {
+    padding: 10px 6px;
+  }
+}
+
+
+/* Follow-up question composer: an in-lesson interaction surface. */
+.classroom-question-composer {
+  position: absolute;
+  z-index: 30;
+  left: 12px;
+  right: 12px;
+  bottom: 86px;
+  padding: 12px;
+  border: 1px solid #e7e2d8;
+  border-radius: 15px;
+  background: #fffefa;
+  box-shadow: 0 8px 28px rgba(35, 31, 24, .16);
+}
+.classroom-question-composer label {
+  display: block;
+  margin: 0 0 8px;
+  color: #34443a;
+  font-size: 12px;
+  font-weight: 700;
+}
+.classroom-question-row { display: flex; gap: 8px; }
+.classroom-question-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #ddd8ce;
+  border-radius: 10px;
+  background: #fff;
+  color: #242424;
+  font: inherit;
+  font-size: 14px;
+}
+.classroom-question-row button {
+  min-width: 58px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 10px;
+  background: #278653;
+  color: white;
+  font-weight: 700;
+}
+.classroom-question-row button:disabled { opacity: .55; }
+.classroom-question-error { margin: 8px 2px 0; color: #a52d2d; font-size: 12px; }
+
+
+/* Release-candidate toolbar and avatar refinements */
+.classroom-header {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.96);
+}
+.classroom-header::-webkit-scrollbar { display: none; }
+.classroom-header span {
+  flex: 1 0 132px;
+  min-width: 132px;
+  align-self: center;
+}
+.classroom-header button {
+  flex: 0 0 38px;
+  border: 1px solid #e9eee9;
+  background: #f7faf7;
+  color: #294536;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.classroom-header button:active,
+.floating-controls button:active { transform: scale(0.96); }
+.classroom-header button:focus-visible,
+.floating-controls button:focus-visible {
+  outline: 3px solid rgba(44, 150, 91, 0.35);
+  outline-offset: 2px;
+}
+.floating-controls {
+  min-height: 88px;
+  height: auto;
+  gap: clamp(5px, 2vw, 12px);
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,0.98);
+}
+.avatar-control {
+  flex-basis: 50px;
+  width: 50px;
+  height: 50px;
+}
+.avatar-control svg { width: 100%; height: 100%; display: block; }
+.avatar-mouth-speaking {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hillion-mouth-open-close 210ms ease-in-out infinite alternate;
+}
+@keyframes hillion-mouth-open-close {
+  from { transform: scaleY(0.75); }
+  to { transform: scaleY(3.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar-mouth-speaking { animation: none; transform: scaleY(1.5); }
+}
+
+
+/* Streaming cursor: anchored after the live text instead of a free-running pen. */
+.hillion-writing-pen { display: none !important; }
+.hillion-writing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 4px;
+  vertical-align: -0.16em;
+  border-radius: 2px;
+  background: #238b57;
+  animation: hillion-cursor-blink 1s steps(2, start) infinite;
+}
+@keyframes hillion-cursor-blink {
+  to { visibility: hidden; }
+}
+
+/* Clear, touch-friendly classroom control states. */
+.floating-controls button,
+.classroom-header button,
+.classroom-toolbar button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.floating-controls button:focus-visible,
+.classroom-header button:focus-visible,
+.classroom-toolbar button:focus-visible {
+  outline: 3px solid rgba(35, 139, 87, .45);
+  outline-offset: 3px;
+}
+.microphone-control {
+  position: relative;
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.microphone-control.mic-active {
+  background: #c83d3d;
+  box-shadow: 0 0 0 5px rgba(200, 61, 61, .16), 0 0 18px rgba(200, 61, 61, .24);
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hillion-writing-cursor,
+  .microphone-control { animation: none !important; transition: none !important; }
+}
+
+/* Final control-bar grouping: tutor presence, lesson playback, and learner input. */
+.floating-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: stretch;
+  gap: clamp(8px, 2.4vw, 18px);
+}
+.control-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1.7vw, 12px);
+  min-width: 0;
+}
+.control-learning {
+  justify-content: space-evenly;
+  padding: 0 5px;
+  border-left: 1px solid #edf0eb;
+  border-right: 1px solid #edf0eb;
+}
+.control-input {
+  justify-content: flex-end;
+}
+.floating-controls .round-control {
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e7eee8;
+  border-radius: 15px;
+  background: #f8faf7;
+  color: #294536;
+}
+.floating-controls .round-control svg {
+  width: 25px;
+  height: 25px;
+}
+.floating-controls .microphone-control {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  background: #2f8f5b;
+}
+.floating-controls .microphone-control.mic-active {
+  background: #c83d3d;
+}
+.avatar-pupil {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 280ms ease;
+}
+.avatar-pupil-speaking {
+  animation: hillion-gaze 3.2s ease-in-out infinite;
+}
+@keyframes hillion-gaze {
+  0%, 22%, 100% { transform: translateX(0); }
+  38%, 58% { transform: translateX(1.15px); }
+  76% { transform: translateX(-.8px); }
+}
+@media (max-width: 370px) {
+  .floating-controls { gap: 5px; }
+  .control-cluster { gap: 4px; }
+  .floating-controls .round-control { flex-basis: 38px; width: 38px; height: 40px; }
+  .floating-controls .microphone-control { flex-basis: 43px; width: 43px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pupil-speaking { animation: none; }
+}
+.lesson-diagram-viewport,
+.lesson-visual-viewport {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+}

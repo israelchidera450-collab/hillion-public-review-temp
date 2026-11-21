@@ -1,0 +1,33 @@
+HILLION IMPLEMENTATION STATUS
+Date: 15 November 2026
+Working source: HILLION-updated-project.zip uploaded in this conversation
+
+IMPLEMENTED IN THIS REVIEW
+- Removed the machine-specific Android SDK local.properties from the source package; CI writes the runner's SDK path at build time.
+- Updated the Android GitHub Actions workflow to install Android platform 36/build-tools 36 and build the Capacitor debug APK.
+- Hardened chat-history loading and saving against malformed/unavailable localStorage.
+- Added the Android HillionModelManager Capacitor plugin.
+- Added Android Settings UI for importing, checking, replacing, and removing a GGUF model.
+- GGUF import uses Android's document picker, validates the extension and GGUF magic bytes, checks available disk space when the provider reports file size, copies off the UI thread, and stages a replacement before activating it.
+- Added the native model-import implementation notes and next-step plan.
+
+CHECKS COMPLETED
+- ZIP integrity test: PASS.
+- TypeScript JSX/JavaScript transpile syntax checks for App.jsx, HomeDashboard.jsx, Classroom.jsx, ClassroomErrorBoundary.jsx, main.jsx, visualEngine.js and lessonStorage.js: PASS.
+- Verified MainActivity registers both native plugins.
+- Verified the active Android workflow configures the runner SDK path rather than relying on the removed Termux local.properties.
+
+NOT VERIFIED
+- Java/Gradle compilation: NOT RUN (Android SDK and Gradle dependencies are not installed in this execution environment; network DNS to dependency registries is unavailable).
+- Vite production build: NOT RUN (node_modules is not installed in this environment and npm registry DNS is unavailable).
+- APK installation/device test: NOT RUN.
+
+RELEASE BLOCKERS
+1. Native llama.cpp inference is NOT integrated. App still calls the llama-server HTTP API at 127.0.0.1:8080.
+2. Imported GGUF model is stored but not loaded or used by the AI. The UI says this explicitly.
+3. Narration still uses browser speechSynthesis; there is no integrated offline TTS engine.
+4. Visual engine still needs broad subject-specific diagram coverage and validation.
+5. Must build the APK, install it on the Redmi 14C, and test lesson/chat generation, interruption/resume, voice, model import, background/foreground and cold restart.
+
+DO NOT DESCRIBE THIS SOURCE AS A FINISHED OR STANDALONE APP.
+The next critical engineering task is to integrate a pinned native llama.cpp Android runtime, expose streaming/cancellation/model lifecycle through a Kotlin Capacitor plugin, and route all AI request paths through that native adapter on Android.

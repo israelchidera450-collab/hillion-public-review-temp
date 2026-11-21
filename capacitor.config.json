@@ -1,0 +1,8 @@
+{
+  "appId": "com.hillion.aitutorstandalone",
+  "appName": "HILLION AI Tutor Native",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": true
+  }
+}

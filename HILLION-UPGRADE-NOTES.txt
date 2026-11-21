@@ -1,0 +1,24 @@
+HILLION AI TUTOR — UPDATE NOTES
+
+This update is based on the source archive supplied in this conversation.
+
+Changes in this revision:
+1. Dashboard upload/link controls use dark, high-contrast labels and icons; link input and language selector also use dark text.
+2. Start button has a light near-white idle state and a yellow pressed/tap state.
+3. Classroom avatar has a soft green luminous ring that pulses only while browser speech synthesis is actually speaking.
+4. Narration is split into shorter sentence-aware speech chunks to reduce long-utterance cutoffs on Android Chrome. The speaker control toggles narration on/off; the avatar glow follows speech start/end events.
+5. Added visible keyboard focus and pressed feedback for dashboard resource controls.
+
+Existing behavior retained:
+- Current dashboard, lesson generation, history, recovery, classroom board, math renderer, zoom, transcript, and export code are retained.
+- Plain text (.txt) uploads are read into lesson context. PDF, Word and image extraction are NOT implemented by this revision. Links are passed as context but are not fetched automatically.
+- Live microphone speech recognition is NOT implemented.
+
+Validation:
+- Source-level sanity checks were performed after editing.
+- A production build could not be run in this environment because the Vite executable is not present in the extracted node_modules. Run `npm install` and `npm run build` on the phone after installing.
+
+Installation guidance:
+- Extract into a temporary folder first.
+- Keep the existing project backup.
+- Copy the updated project files over the existing project only after checking the archive contents.

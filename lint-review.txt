@@ -1,0 +1,689 @@
+
+> hillion-ai-tutor@0.0.0 lint
+> oxlint
+
+
+  ! eslint(no-unused-vars): Function 'createCellVisual' is declared but never used.
+    ,-[src/utils/visualEngine.js:33:10]
+ 32 | 
+ 33 | function createCellVisual(kind, title, description, caption) {
+    :          ^^^^^^^^|^^^^^^^
+    :                  `-- 'createCellVisual' is declared here
+ 34 |   const plant = /plant/i.test(kind + ' ' + title);
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Function 'createGraphVisual' is declared but never used.
+     ,-[src/utils/visualEngine.js:222:10]
+ 221 | 
+ 222 | function createGraphVisual(title, description, caption) {
+     :          ^^^^^^^^|^^^^^^^^
+     :                  `-- 'createGraphVisual' is declared here
+ 223 |   const elements = [
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Function 'createTimelineVisual' is declared but never used.
+     ,-[src/utils/visualEngine.js:257:10]
+ 256 | 
+ 257 | function createTimelineVisual(title, description, caption) {
+     :          ^^^^^^^^^^|^^^^^^^^^
+     :                    `-- 'createTimelineVisual' is declared here
+ 258 |   const elements = [
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Function 'createCircuitVisual' is declared but never used.
+     ,-[src/utils/visualEngine.js:297:10]
+ 296 | 
+ 297 | function createCircuitVisual(title, description, caption) {
+     :          ^^^^^^^^^|^^^^^^^^^
+     :                   `-- 'createCircuitVisual' is declared here
+ 298 |   const elements = [
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Parameter 'context' is declared but never used. Unused parameters should start with a '_'.
+     ,-[src/utils/visualEngine.js:439:57]
+ 438 | 
+ 439 | export function generateSectionVisuals(visualPlan = [], context = {}) {
+     :                                                         ^^^|^^^
+     :                                                            `-- 'context' is declared here
+ 440 |   // Visuals must be explicitly planned by the lesson model. Never infer a
+     `----
+  help: Consider removing this parameter.
+
+  ! react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders
+    ,-[src/components/HomeDashboard.jsx:41:5]
+ 39 | 
+ 40 |   useEffect(() => {
+    :   ^^^^|^^^^
+    :       `-- This is the containing effect
+ 41 |     setHistoryLessons(recentBoards)
+    :     ^^^^^^^^|^^^^^^^^
+    :             `-- Avoid calling setState() directly within an effect
+ 42 |   }, [recentBoards])
+    `----
+  help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-effect
+
+  ! react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders
+     ,-[src/components/HomeDashboard.jsx:152:23]
+ 150 | 
+ 151 |   useEffect(() => {
+     :   ^^^^|^^^^
+     :       `-- This is the containing effect
+ 152 |     if (settingsOpen) refreshModelStatus()
+     :                       ^^^^^^^^^|^^^^^^^^
+     :                                `-- Avoid calling setState() directly within an effect
+ 153 |   }, [settingsOpen])
+     `----
+  help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-effect
+
+  ! eslint(no-unused-vars): Function 'PauseIcon' is declared but never used.
+    ,-[src/components/Classroom.jsx:65:10]
+ 64 | 
+ 65 | function PauseIcon() {
+    :          ^^^^|^^^^
+    :              `-- 'PauseIcon' is declared here
+ 66 |   return (
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'isPlaying' is declared but never used. Unused variables should start with a '_'.
+     ,-[src/components/Classroom.jsx:711:10]
+ 710 |   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+ 711 |   const [isPlaying, setIsPlaying] = useState(false)
+     :          ^^^^|^^^^
+     :              `-- 'isPlaying' is declared here
+ 712 |   const [isMicActive, setIsMicActive] = useState(false)
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'setIsPlaying' is declared but never used. Unused variables should start with a '_'.
+     ,-[src/components/Classroom.jsx:711:21]
+ 710 |   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+ 711 |   const [isPlaying, setIsPlaying] = useState(false)
+     :                     ^^^^^^|^^^^^
+     :                           `-- 'setIsPlaying' is declared here
+ 712 |   const [isMicActive, setIsMicActive] = useState(false)
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'touchMoved' is assigned a value but never used. Unused variables should start with a '_'.
+      ,-[src/components/Classroom.jsx:1090:9]
+ 1089 |     let touchStartY = 0;
+ 1090 |     let touchMoved = false;
+      :         ^^^^^|^^^^
+      :              `-- 'touchMoved' is declared here
+ 1091 | 
+ 1092 |     const pauseFollowing = () => {
+ 1093 |       setIsFollowingLive(false);
+ 1094 |       setShowReturnToLive(true);
+ 1095 |     };
+ 1096 | 
+ 1097 |     const handleWheel = (event) => {
+ 1098 |       if (event.deltaY < 0) {
+ 1099 |         pauseFollowing();
+ 1100 |       }
+ 1101 |     };
+ 1102 | 
+ 1103 |     const handleTouchStart = (event) => {
+ 1104 |       if (event.touches.length !== 1) {
+ 1105 |         touchMoved = false;
+ 1106 |         return;
+ 1107 |       }
+ 1108 | 
+ 1109 |       touchStartY = event.touches[0].clientY;
+ 1110 |       touchMoved = false;
+ 1111 |     };
+ 1112 | 
+ 1113 |     const handleTouchMove = (event) => {
+ 1114 |       if (event.touches.length !== 1) return;
+ 1115 | 
+ 1116 |       const movement = event.touches[0].clientY - touchStartY;
+ 1117 | 
+ 1118 |       if (movement > 8) {
+ 1119 |         touchMoved = true;
+ 1120 |         pauseFollowing();
+ 1121 |       }
+ 1122 |     };
+ 1123 | 
+ 1124 |     const handleTouchEnd = () => {
+ 1125 |       touchMoved = false;
+      :       ^^^^^|^^^^
+      :            `-- it was last assigned here
+ 1126 |     };
+      `----
+  help: Did you mean to use this variable?
+
+  ! react(immutability): Cannot reassign variable after render completes
+     ,-[src/components/Classroom.jsx:392:7]
+ 383 | 
+ 384 |     let pinchStart = null;
+     :         ^^^^^|^^^^
+     :              `-- `pinchStart` is declared here
+ 385 |     const distance = (touches) => Math.hypot(
+ 386 |       touches[0].clientX - touches[1].clientX,
+ 387 |       touches[0].clientY - touches[1].clientY
+ 388 |     );
+ 389 | 
+ 390 |     const onStart = (event) => {
+ 391 |       if (event.touches.length !== 2) return;
+ 392 |       pinchStart = {
+     :       ^^^^^|^^^^
+     :            `-- Cannot reassign `pinchStart` after render completes
+ 393 |         distance: Math.max(1, distance(event.touches)),
+     `----
+  help: Reassigning `pinchStart` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/immutability
+
+  ! react(immutability): Cannot access variable while it is being initialized
+     ,-[src/components/Classroom.jsx:870:7]
+ 869 |     if (speechQueueRef.current.length && !speechRef.current) {
+ 870 |       speakNextChunk();
+     :       ^^^^^^^|^^^^^^
+     :              `-- `speakNextChunk` is read during its own initialization
+ 871 |     }
+     `----
+  help: `speakNextChunk` is read while its declaration is still being initialized. Move the access after initialization. For a recursive callback, use a named function expression or restructure the callback so it does not capture itself during initialization
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/immutability
+
+  ! react(immutability): Cannot reassign variable after render completes
+     ,-[src/components/Classroom.jsx:770:7]
+ 749 |     if (!Capacitor.isNativePlatform()) return undefined
+ 750 |     let disposed = false
+     :         ^^^^|^^^
+     :             `-- `disposed` is declared here
+ 751 |     const handles = []
+ 752 | 
+ 753 |     HillionSpeechRecognition.addListener('speechResult', event => {
+ 754 |       if (event?.transcript) setQuestionDraft(event.transcript)
+ 755 |       if (event?.isFinal) setMicActive(false)
+ 756 |     }).then(handle => {
+ 757 |       if (disposed) handle.remove()
+ 758 |       else handles.push(handle)
+ 759 |     })
+ 760 | 
+ 761 |     HillionSpeechRecognition.addListener('speechError', event => {
+ 762 |       setQuestionError(`Android speech recognition error (${event?.error ?? 'unknown'}). You can type your question instead.`)
+ 763 |       setMicActive(false)
+ 764 |     }).then(handle => {
+ 765 |       if (disposed) handle.remove()
+ 766 |       else handles.push(handle)
+ 767 |     })
+ 768 | 
+ 769 |     return () => {
+ 770 |       disposed = true
+     :       ^^^^|^^^
+     :           `-- Cannot reassign `disposed` after render completes
+ 771 |       handles.forEach(handle => handle.remove())
+     `----
+  help: Reassigning `disposed` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/immutability
+
+  ! react(refs): Cannot access refs during render
+     ,-[src/components/Classroom.jsx:378:10]
+ 377 |   const zoomRef = useRef(zoom);
+ 378 |   zoomRef.current = zoom;
+     :   ^^^|^^^^^^^|^^^
+     :      |       `-- Cannot update ref value during render
+     :      `-- This value is a ref
+ 379 | 
+     `----
+  help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/refs
+
+  ! react(refs): Cannot access refs during render
+     ,-[src/components/Classroom.jsx:736:10]
+ 735 |   const zoomRef = useRef(zoom)
+ 736 |   zoomRef.current = zoom
+     :   ^^^|^^^^^^^|^^^
+     :      |       `-- Cannot update ref value during render
+     :      `-- This value is a ref
+ 737 | 
+     `----
+  help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/refs
+
+  ! react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders
+      ,-[src/components/Classroom.jsx:1159:7]
+ 1156 | 
+ 1157 |   useEffect(() => {
+      :   ^^^^|^^^^
+      :       `-- This is the containing effect
+ 1158 |     if (!loading) {
+ 1159 |       setProgressStage(0)
+      :       ^^^^^^^^|^^^^^^^
+      :               `-- Avoid calling setState() directly within an effect
+ 1160 |       return
+      `----
+  help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/set-state-in-effect
+
+  ! react(jsx-key): Missing "key" prop for element in iterator.
+     ,-[src/components/Classroom.jsx:650:42]
+ 649 |           style={{ width: (zoom * 100) + '%' }}>
+ 650 |           {visual.elements.slice(0, 250).map((element, index) => {
+     :                                          ^|^
+     :                                           `-- Iterator starts here.
+ 651 |             if (!element || typeof element !== 'object' ||
+ 652 |                 !allowedShapes.has(element.type)) return null;
+ 653 | 
+ 654 |             const Shape = element.type;
+ 655 |             const common = {
+ 656 |               key: index,
+ 657 |               fill: element.fill || (Shape === 'text' ? '#263b32' : 'none'),
+ 658 |               stroke: element.stroke || 'none',
+ 659 |               strokeWidth: numberValue(element.strokeWidth, 2),
+ 660 |               opacity: numberValue(element.opacity, 1),
+ 661 |               strokeLinecap: 'round',
+ 662 |               strokeLinejoin: 'round'
+ 663 |             };
+ 664 | 
+ 665 |             if (Shape === 'path') {
+ 666 |               return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+     :                       ^^|^
+     :                         `-- Element generated here.
+ 667 |             }
+     `----
+  help: Add a "key" prop to the element in the iterator (https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key).
+
+  ! react(jsx-key): Missing "key" prop for element in iterator.
+     ,-[src/components/Classroom.jsx:650:42]
+ 649 |           style={{ width: (zoom * 100) + '%' }}>
+ 650 |           {visual.elements.slice(0, 250).map((element, index) => {
+     :                                          ^|^
+     :                                           `-- Iterator starts here.
+ 651 |             if (!element || typeof element !== 'object' ||
+ 652 |                 !allowedShapes.has(element.type)) return null;
+ 653 | 
+ 654 |             const Shape = element.type;
+ 655 |             const common = {
+ 656 |               key: index,
+ 657 |               fill: element.fill || (Shape === 'text' ? '#263b32' : 'none'),
+ 658 |               stroke: element.stroke || 'none',
+ 659 |               strokeWidth: numberValue(element.strokeWidth, 2),
+ 660 |               opacity: numberValue(element.opacity, 1),
+ 661 |               strokeLinecap: 'round',
+ 662 |               strokeLinejoin: 'round'
+ 663 |             };
+ 664 | 
+ 665 |             if (Shape === 'path') {
+ 666 |               return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+ 667 |             }
+ 668 | 
+ 669 |             if (Shape === 'polyline' || Shape === 'polygon') {
+ 670 |               return <Shape {...common} points={String(element.points || '').slice(0, 5000)} />;
+     :                       ^^|^^
+     :                         `-- Element generated here.
+ 671 |             }
+     `----
+  help: Add a "key" prop to the element in the iterator (https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key).
+
+  ! react(jsx-key): Missing "key" prop for element in iterator.
+     ,-[src/components/Classroom.jsx:650:42]
+ 649 |           style={{ width: (zoom * 100) + '%' }}>
+ 650 |           {visual.elements.slice(0, 250).map((element, index) => {
+     :                                          ^|^
+     :                                           `-- Iterator starts here.
+ 651 |             if (!element || typeof element !== 'object' ||
+ 652 |                 !allowedShapes.has(element.type)) return null;
+ 653 | 
+ 654 |             const Shape = element.type;
+ 655 |             const common = {
+ 656 |               key: index,
+ 657 |               fill: element.fill || (Shape === 'text' ? '#263b32' : 'none'),
+ 658 |               stroke: element.stroke || 'none',
+ 659 |               strokeWidth: numberValue(element.strokeWidth, 2),
+ 660 |               opacity: numberValue(element.opacity, 1),
+ 661 |               strokeLinecap: 'round',
+ 662 |               strokeLinejoin: 'round'
+ 663 |             };
+ 664 | 
+ 665 |             if (Shape === 'path') {
+ 666 |               return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+ 667 |             }
+ 668 | 
+ 669 |             if (Shape === 'polyline' || Shape === 'polygon') {
+ 670 |               return <Shape {...common} points={String(element.points || '').slice(0, 5000)} />;
+ 671 |             }
+ 672 | 
+ 673 |             if (Shape === 'text') {
+ 674 |               return (
+ 675 |                 <text {...common}
+     :                  ^^|^
+     :                    `-- Element generated here.
+ 676 |                   x={numberValue(element.x, 0)}
+     `----
+  help: Add a "key" prop to the element in the iterator (https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key).
+
+  ! react(jsx-key): Missing "key" prop for element in iterator.
+     ,-[src/components/Classroom.jsx:650:42]
+ 649 |           style={{ width: (zoom * 100) + '%' }}>
+ 650 |           {visual.elements.slice(0, 250).map((element, index) => {
+     :                                          ^|^
+     :                                           `-- Iterator starts here.
+ 651 |             if (!element || typeof element !== 'object' ||
+ 652 |                 !allowedShapes.has(element.type)) return null;
+ 653 | 
+ 654 |             const Shape = element.type;
+ 655 |             const common = {
+ 656 |               key: index,
+ 657 |               fill: element.fill || (Shape === 'text' ? '#263b32' : 'none'),
+ 658 |               stroke: element.stroke || 'none',
+ 659 |               strokeWidth: numberValue(element.strokeWidth, 2),
+ 660 |               opacity: numberValue(element.opacity, 1),
+ 661 |               strokeLinecap: 'round',
+ 662 |               strokeLinejoin: 'round'
+ 663 |             };
+ 664 | 
+ 665 |             if (Shape === 'path') {
+ 666 |               return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+ 667 |             }
+ 668 | 
+ 669 |             if (Shape === 'polyline' || Shape === 'polygon') {
+ 670 |               return <Shape {...common} points={String(element.points || '').slice(0, 5000)} />;
+ 671 |             }
+ 672 | 
+ 673 |             if (Shape === 'text') {
+ 674 |               return (
+ 675 |                 <text {...common}
+ 676 |                   x={numberValue(element.x, 0)}
+ 677 |                   y={numberValue(element.y, 0)}
+ 678 |                   fontSize={numberValue(element.fontSize, 24)}
+ 679 |                   fontWeight={numberValue(element.fontWeight, 500)}
+ 680 |                   textAnchor={element.textAnchor || 'middle'}>
+ 681 |                   {String(element.text || '').slice(0, 250)}
+ 682 |                 </text>
+ 683 |               );
+ 684 |             }
+ 685 | 
+ 686 |             const coordinates = {};
+ 687 |             for (const key of [
+ 688 |               'x', 'y', 'x1', 'y1', 'x2', 'y2',
+ 689 |               'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height'
+ 690 |             ]) {
+ 691 |               const value = numberValue(element[key]);
+ 692 |               if (value !== undefined) coordinates[key] = value;
+ 693 |             }
+ 694 | 
+ 695 |             return <Shape {...common} {...coordinates} />;
+     :                     ^^|^^
+     :                       `-- Element generated here.
+ 696 |           })}
+     `----
+  help: Add a "key" prop to the element in the iterator (https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key).
+
+  ! eslint(no-unused-vars): Identifier 'deleteLesson' is imported but never used.
+   ,-[src/App.jsx:6:88]
+ 5 | import HomeDashboard from './components/HomeDashboard'
+ 6 | import { getActiveLesson, saveActiveLesson, saveLesson, getLessons, clearActiveLesson, deleteLesson, restoreStorageFromIndexedDB } from "./utils/lessonStorage"
+   :                                                                                        ^^^^^^|^^^^^
+   :                                                                                              `-- 'deleteLesson' is imported here
+ 7 | import { generateSectionVisuals } from './utils/visualEngine'
+   `----
+  help: Consider removing this import.
+
+  ! eslint(no-unused-vars): Variable 'setSubject' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:50:19]
+ 49 | }, [])
+ 50 |   const [subject, setSubject] = useState('Biology')
+    :                   ^^^^^|^^^^
+    :                        `-- 'setSubject' is declared here
+ 51 |   const [lessonTopic, setLessonTopic] = useState('')
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'isTranscriptOpen' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:64:8]
+ 63 | const [isLessonLoading, setIsLessonLoading] = useState(false)
+ 64 | const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+    :        ^^^^^^^^|^^^^^^^
+    :                `-- 'isTranscriptOpen' is declared here
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'setIsTranscriptOpen' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:64:26]
+ 63 | const [isLessonLoading, setIsLessonLoading] = useState(false)
+ 64 | const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+    :                          ^^^^^^^^^|^^^^^^^^^
+    :                                   `-- 'setIsTranscriptOpen' is declared here
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'isPlaying' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:65:8]
+ 64 | const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+    :        ^^^^|^^^^
+    :            `-- 'isPlaying' is declared here
+ 66 | const [isMicActive, setIsMicActive] = useState(false)
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'setIsPlaying' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:65:19]
+ 64 | const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+    :                   ^^^^^^|^^^^^
+    :                         `-- 'setIsPlaying' is declared here
+ 66 | const [isMicActive, setIsMicActive] = useState(false)
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'isMicActive' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:66:8]
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+ 66 | const [isMicActive, setIsMicActive] = useState(false)
+    :        ^^^^^|^^^^^
+    :             `-- 'isMicActive' is declared here
+ 67 |   const [message, setMessage] = useState('')
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'setIsMicActive' is declared but never used. Unused variables should start with a '_'.
+    ,-[src/App.jsx:66:21]
+ 65 | const [isPlaying, setIsPlaying] = useState(false)
+ 66 | const [isMicActive, setIsMicActive] = useState(false)
+    :                     ^^^^^^^|^^^^^^
+    :                            `-- 'setIsMicActive' is declared here
+ 67 |   const [message, setMessage] = useState('')
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'subjects' is declared but never used. Unused variables should start with a '_'.
+     ,-[src/App.jsx:194:9]
+ 193 | 
+ 194 |   const subjects = [
+     :         ^^^^|^^^
+     :             `-- 'subjects' is declared here
+ 195 |     { name: 'Biology', icon: '🧬', color: 'green' },
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Catch parameter 'error' is caught but never used.
+     ,-[src/App.jsx:883:12]
+ 882 | 
+ 883 |   } catch (error) {
+     :            ^^|^^
+     :              `-- 'error' is declared here
+ 884 |     setMessages(previous => [
+     `----
+  help: Consider handling this error.
+
+  ! eslint(no-unused-vars): Variable 'normalizedIncoming' is declared but never used. Unused variables should start with a '_'.
+      ,-[src/App.jsx:1009:13]
+ 1008 |     if (overlap) {
+ 1009 |       const normalizedIncoming = incoming.toLowerCase().replace(/\s+/g, ' ');
+      :             ^^^^^^^^^|^^^^^^^^
+      :                      `-- 'normalizedIncoming' is declared here
+ 1010 |       let count = 0;
+      `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Catch parameter 'error' is caught but never used.
+      ,-[src/App.jsx:1345:24]
+ 1344 |                 return JSON.parse(candidate);
+ 1345 |               } catch (error) {
+      :                        ^^|^^
+      :                          `-- 'error' is declared here
+ 1346 |                 break;
+      `----
+  help: Consider handling this error.
+
+  ! eslint(no-unused-vars): Variable 'shouldCreateTopicDiagram' is declared but never used. Unused variables should start with a '_'.
+      ,-[src/App.jsx:1752:13]
+ 1751 | 
+ 1752 |       const shouldCreateTopicDiagram =
+      :             ^^^^^^^^^^^^|^^^^^^^^^^^
+      :                         `-- 'shouldCreateTopicDiagram' is declared here
+ 1753 |         topicRequestsDiagram || Boolean(matchedDiagramTopic);
+      `----
+  help: Consider removing this declaration.
+
+  ! react(immutability): Cannot reassign variable in async function
+      ,-[src/App.jsx:1172:9]
+ 1153 |       const requestController = new AbortController();
+ 1154 |       let timedOut = false;
+      :           ^^^^|^^^
+      :               `-- `timedOut` is declared here
+ 1155 |       let reply = '';
+ 1156 | 
+ 1157 |       const abortFromLesson = () => {
+ 1158 |         console.warn('[HILLION DIAGNOSTIC] Request aborted by lesson controller:', {
+ 1159 |           time: new Date().toISOString(),
+ 1160 |           reason: controller.signal.reason
+ 1161 |         });
+ 1162 |         requestController.abort(controller.signal.reason || 'lesson-controller-aborted');
+ 1163 |       };
+ 1164 | 
+ 1165 |       if (controller.signal.aborted) {
+ 1166 |         throw new DOMException("Lesson interrupted", "AbortError");
+ 1167 |       }
+ 1168 | 
+ 1169 |       controller.signal.addEventListener("abort", abortFromLesson, { once: true });
+ 1170 | 
+ 1171 |       const timeoutId = setTimeout(() => {
+ 1172 |         timedOut = true;
+      :         ^^^^|^^^
+      :             `-- Cannot reassign `timedOut`
+ 1173 |         console.warn('[HILLION DIAGNOSTIC] AI request timeout fired:', {
+      `----
+  help: Reassigning a variable in an async function can cause inconsistent behavior on subsequent renders. Consider using state instead
+  note: React Compiler skipped optimizing this component or hook. Additional guidance: https://react.dev/reference/eslint-plugin-react-hooks/lints/immutability
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:125]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                             ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:131]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                   ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:134]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                      ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:140]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                            ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:143]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                               ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:146]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                  ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:153]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                         ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:156]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                            ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:163]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                                   ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:169]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                                         ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:172]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                                            ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+      ,-[src/App.jsx:1396:179]
+ 1395 |               '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+ 1396 |               'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+      :                                                                                                                                                                                   ^^
+ 1397 |             ].join('\n')
+      `----
+  help: Replace `\"` with `"`.
+
+Found 47 warnings and 0 errors.
+Finished in 7.3s on 11 files with 104 rules using 8 threads.

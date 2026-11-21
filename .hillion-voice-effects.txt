@@ -1,0 +1,93 @@
+  // Initialise speech voices once for the lifetime of this component.
+  useEffect(() => {
+    if (!('speechSynthesis' in window) ||
+        typeof window.SpeechSynthesisUtterance === 'undefined') return undefined;
+
+    const speechEngine = window.speechSynthesis;
+
+    const selectHillionVoice = () => {
+      const voices = speechEngine.getVoices() || [];
+      const preferences = ['en-us', 'en-ng', 'en-gb', 'en-in', 'en-au'];
+      const englishVoices = voices.filter(v => /^en(-|$)/i.test(v.lang || ''));
+
+      const selected = preferences.map(locale => {
+        const matches = englishVoices.filter(
+          v => (v.lang || '').toLowerCase() === locale
+        );
+        return matches.find(v => v.localService) || matches[0] || null;
+      }).find(Boolean);
+
+      hillionVoiceRef.current = selected;
+      window.__HILLION_TTS_VOICES__ = voices.map(v => ({
+        name: v.name,
+        language: v.lang,
+        local: v.localService,
+        default: v.default
+      }));
+
+      console.info('[HILLION VOICE] Available voices:', window.__HILLION_TTS_VOICES__);
+      console.info('[HILLION VOICE] Selected:', selected?.name || 'System default');
+    };
+
+    selectHillionVoice();
+    speechEngine.addEventListener?.('voiceschanged', selectHillionVoice);
+
+    return () => {
+      speechEngine.removeEventListener?.('voiceschanged', selectHillionVoice);
+    };
+  }, []);
+
+  // Process newly streamed lesson text independently of voice initialisation.
+  useEffect(() => {
+    const previous = autoNarrationPreviousRef.current;
+    const current = String(liveSectionContent || '');
+
+    if (!current.startsWith(previous)) {
+      autoNarrationPreviousRef.current = current;
+      return;
+    }
+
+    const addedText = current.slice(previous.length);
+    autoNarrationPreviousRef.current = current;
+
+    if (addedText) {
+      const cleanText = addedText
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/\*\*|==|[*_`>]/g, '')
+        .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
+        .replace(/\$([^$]+)\$/g, '$1')
+        .replace(/\\\[|\\\]|\\\(|\\\)/g, '')
+        .replace(/\s+/g, ' ');
+
+      autoNarrationBufferRef.current += cleanText;
+      const buffer = autoNarrationBufferRef.current;
+      const sentences = buffer.match(/[^.!?]+[.!?]+(?:["')\]]*)/g) || [];
+
+      if (sentences.length) {
+        speechQueueRef.current.push(
+          ...sentences.map(item => item.trim()).filter(Boolean)
+        );
+        autoNarrationBufferRef.current = buffer.slice(sentences.join('').length);
+      }
+
+      if (autoNarrationBufferRef.current.length > 260) {
+        const pending = autoNarrationBufferRef.current;
+        const splitAt = pending.lastIndexOf(' ', 220);
+
+        if (splitAt > 80) {
+          speechQueueRef.current.push(pending.slice(0, splitAt).trim());
+          autoNarrationBufferRef.current = pending.slice(splitAt + 1);
+        }
+      }
+    }
+
+    if (!loading && autoNarrationBufferRef.current.trim()) {
+      speechQueueRef.current.push(autoNarrationBufferRef.current.trim());
+      autoNarrationBufferRef.current = '';
+    }
+
+    if (speechQueueRef.current.length && !speechRef.current) {
+      speakNextChunk();
+    }
+  }, [liveSectionContent, loading]);
