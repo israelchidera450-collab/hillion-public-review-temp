@@ -2171,7 +2171,7 @@ Do not invent structures or relationships.
     }
   }
 
-  async function askClassroomQuestion(question) {
+  async function askClassroomQuestion(question, selectedPassage = '') {
     const cleanQuestion = String(question || '').trim();
     if (!cleanQuestion) return;
 
@@ -2191,10 +2191,10 @@ Do not invent structures or relationships.
           messages: [
             {
               role: 'system',
-              content: `You are HILLION, the academic tutor continuing an existing ${lessonSubject || 'academic'} lesson on "${lessonTopic}". Answer the learner's follow-up in context. Be scientifically accurate, explain unfamiliar terms, and use clear structured teaching. If a formula is needed, define every symbol and unit and show a worked example. Do not restart the whole lesson. Return only the answer that should be added to the lesson board.`
+              content: `You are HILLION, the academic tutor continuing an existing ${lessonSubject || 'academic'} lesson on "${lessonTopic}". The learner has interrupted to clarify a point. Explain only the requested point, not the whole lesson. If a selected passage is supplied, unpack its meaning sentence by sentence, define unfamiliar terms, explain every formula symbol and unit, and use a short example where useful. Do not repeat unrelated material or restart the lesson. Return only the clarification to place beside the relevant lesson section.`
             },
             ...conversationContext,
-            { role: 'user', content: `Existing lesson context:\n${recentContext}\n\nLearner's follow-up question: ${cleanQuestion}` }
+            { role: 'user', content: `Existing lesson context:\n${recentContext}\n\nExact selected passage: ${selectedPassage ? '“' + selectedPassage + '”' : 'No passage selected; infer the point from the question.'}\n\nLearner's follow-up question: ${cleanQuestion}` }
           ],
           temperature: 0.3,
           repeat_penalty: 1.15,
@@ -2212,13 +2212,22 @@ Do not invent structures or relationships.
 
       const heading = `Follow-up: ${cleanQuestion.slice(0, 90)}`;
       const followUpSection = {
-        type: 'explanation',
-        heading,
+        type: 'clarification',
+        heading: selectedPassage ? 'Clarification: selected passage' : heading,
         content: answer,
+        clarifiedPassage: selectedPassage || '',
         visualPlan: [],
         visuals: generateSectionVisuals([], { heading, topic: lessonTopic, subject: lessonSubject, goal: cleanQuestion })
       };
-      const updatedSections = [...lessonSections, followUpSection];
+      const matchedSectionIndex = selectedPassage
+        ? lessonSections.findIndex(section => String(section.content || '').includes(selectedPassage))
+        : -1;
+      const insertionIndex = matchedSectionIndex >= 0 ? matchedSectionIndex + 1 : lessonSections.length;
+      const updatedSections = [
+        ...lessonSections.slice(0, insertionIndex),
+        followUpSection,
+        ...lessonSections.slice(insertionIndex)
+      ];
       const updatedConversation = [
         ...(lessonConversation || []),
         { role: 'user', content: cleanQuestion },
@@ -2232,7 +2241,17 @@ Do not invent structures or relationships.
         subject: lessonSubject,
         sections: updatedSections,
         conversation: updatedConversation,
-        transcript: 'Follow-up added to this lesson.',
+        resumeCheckpoint: {
+          sectionCount: lessonSections.length,
+          liveDraft: liveDraftRef.current ? {
+            heading: liveDraftRef.current.heading || '',
+            content: liveDraftRef.current.content || ''
+          } : activeLesson?.liveDraft || null,
+          clarifiedPassage: selectedPassage || '',
+          clarificationInsertedAt: insertionIndex,
+          updatedAt: new Date().toISOString()
+        },
+        transcript: 'Clarification added beside the relevant section. Resume to continue the lecture.',
         status: activeLesson?.status || 'paused',
         createdAt: activeLesson?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
