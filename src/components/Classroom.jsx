@@ -434,7 +434,7 @@ function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    let pinchStart = null;
+    const pinchStartRef = { current: null };
     const distance = (touches) => Math.hypot(
       touches[0].clientX - touches[1].clientX,
       touches[0].clientY - touches[1].clientY
@@ -442,21 +442,21 @@ function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
 
     const onStart = (event) => {
       if (event.touches.length !== 2) return;
-      pinchStart = {
+      pinchStartRef.current = {
         distance: Math.max(1, distance(event.touches)),
         zoom: zoomRef.current
       };
     };
 
     const onMove = (event) => {
-      if (event.touches.length !== 2 || !pinchStart) return;
+      if (event.touches.length !== 2 || !pinchStartRef.current) return;
       event.preventDefault();
-      const next = pinchStart.zoom * distance(event.touches) / pinchStart.distance;
+      const next = pinchStartRef.current.zoom * distance(event.touches) / pinchStartRef.current.distance;
       setZoom(Math.min(maxZoom, Math.max(minZoom, Number(next.toFixed(2)))));
     };
 
     const onEnd = (event) => {
-      if (event.touches.length < 2) pinchStart = null;
+      if (event.touches.length < 2) pinchStartRef.current = null;
     };
 
     viewport.addEventListener('touchstart', onStart, { passive: true });
@@ -771,6 +771,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [selectedPassage, setSelectedPassage] = useState('')
   const recognitionRef = useRef(null)
   const [progressStage, setProgressStage] = useState(0)
+  const recognitionDisposedRef = useRef(false)
   const speechRef = useRef(null)
   const speechQueueRef = useRef([])
   const speechIndexRef = useRef(0)
@@ -801,14 +802,14 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined
-    let disposed = false
+    recognitionDisposedRef.current = false
     const handles = []
 
     HillionSpeechRecognition.addListener('speechResult', event => {
       if (event?.transcript) setQuestionDraft(event.transcript)
       if (event?.isFinal) setMicActive(false)
     }).then(handle => {
-      if (disposed) handle.remove()
+      if (recognitionDisposedRef.current) handle.remove()
       else handles.push(handle)
     })
 
@@ -821,10 +822,56 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     })
 
     return () => {
-      disposed = true
+      recognitionDisposedRef.current = true
       handles.forEach(handle => handle.remove())
     }
   }, [])
+
+  function speakNextChunk() {
+    const queue = speechQueueRef.current
+    const index = speechIndexRef.current
+    if (!queue[index]) {
+      speechRef.current = null
+      setIsSpeaking(false)
+      return
+    }
+
+    const utterance = new SpeechSynthesisUtterance(queue[index])
+    const selectedVoice = hillionVoiceRef.current
+    if (selectedVoice) {
+      utterance.voice = selectedVoice
+      utterance.lang = selectedVoice.lang
+    } else {
+      utterance.lang = 'en-US'
+    }
+    utterance.rate = 0.92
+    utterance.pitch = 1
+    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onend = () => {
+      speechIndexRef.current += 1
+      if (speechIndexRef.current < speechQueueRef.current.length) {
+        speakNextChunk()
+      } else {
+        speechRef.current = null
+        speechQueueRef.current = []
+        speechIndexRef.current = 0
+        setIsSpeaking(false)
+      }
+    }
+    utterance.onerror = (event) => {
+      // Android may report a cancelled utterance while replacing the queue.
+      if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        console.warn('Hillion narration stopped:', event.error)
+      }
+      speechRef.current = null
+      speechQueueRef.current = []
+      speechIndexRef.current = 0
+      setIsSpeaking(false)
+    }
+    speechRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+  }
+
 
   useEffect(() => {
     if (!('speechSynthesis' in window) ||
@@ -949,50 +996,6 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     setIsSpeaking(false)
   }
 
-  function speakNextChunk() {
-    const queue = speechQueueRef.current
-    const index = speechIndexRef.current
-    if (!queue[index]) {
-      speechRef.current = null
-      setIsSpeaking(false)
-      return
-    }
-
-    const utterance = new SpeechSynthesisUtterance(queue[index])
-    const selectedVoice = hillionVoiceRef.current
-    if (selectedVoice) {
-      utterance.voice = selectedVoice
-      utterance.lang = selectedVoice.lang
-    } else {
-      utterance.lang = 'en-US'
-    }
-    utterance.rate = 0.92
-    utterance.pitch = 1
-    utterance.onstart = () => setIsSpeaking(true)
-    utterance.onend = () => {
-      speechIndexRef.current += 1
-      if (speechIndexRef.current < speechQueueRef.current.length) {
-        speakNextChunk()
-      } else {
-        speechRef.current = null
-        speechQueueRef.current = []
-        speechIndexRef.current = 0
-        setIsSpeaking(false)
-      }
-    }
-    utterance.onerror = (event) => {
-      // Android may report a cancelled utterance while replacing the queue.
-      if (event.error !== 'canceled' && event.error !== 'interrupted') {
-        console.warn('Hillion narration stopped:', event.error)
-      }
-      speechRef.current = null
-      speechQueueRef.current = []
-      speechIndexRef.current = 0
-      setIsSpeaking(false)
-    }
-    speechRef.current = utterance
-    window.speechSynthesis.speak(utterance)
-  }
 
   function toggleNarration() {
     if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
@@ -1216,10 +1219,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   }, [liveSectionContent, sections.length, isFollowingLive]);
 
   useEffect(() => {
-    if (!loading) {
-      setProgressStage(0)
-      return
-    }
+    if (!loading) return
 
     const timer = setInterval(() => {
       setProgressStage(stage => (stage + 1) % 5)
