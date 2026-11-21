@@ -42,7 +42,7 @@ In the repository, open **Settings → Secrets and variables → Actions → New
 
 ## Build
 
-Open **Actions → HILLION Android compile verification → Run workflow** and run it on the implementation branch. When all four secrets are present, the workflow builds, verifies, and archives `HILLION-ANDROID-RELEASE`. If any secret is missing or invalid, no production release artifact is created; the CI-only debug APK remains clearly labelled as not for upgrade.
+After all four secrets are saved, push a new commit to the implementation branch to trigger the signed release build. Once this workflow is merged into the default branch, you can also use **Actions → HILLION Android compile verification → Run workflow**. When all four secrets are present, the workflow builds, verifies, and archives `HILLION-ANDROID-RELEASE`. If any secret is missing or invalid, no production release artifact is created; the CI-only debug APK remains clearly labelled as not for upgrade.
 
 ## Installation safety
 
