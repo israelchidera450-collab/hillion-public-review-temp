@@ -24,10 +24,9 @@ test('encrypted recovery backup restores HILLION records on a fresh device', asy
   });
   const created = await createRecoveryBackup({ storage: source });
   assert.match(created.recoveryCode, /^H5LL10N-/);
-  assert.equal(created.recoverySecret.length, 40);
   const target = new MemoryStorage({ hillion_saved_lessons: '[]' });
   const restored = await restoreRecoveryBackup({
-    backup: created.backup, recoverySecret: created.recoverySecret, storage: target
+    backup: created.backup, recoveryCode: created.recoveryCode, storage: target
   });
   assert.deepEqual(restored.restoredKeys.sort(), ['hillion_chat_history', 'hillion_saved_lessons']);
   assert.equal(target.getItem('hillion_saved_lessons'), source.getItem('hillion_saved_lessons'));
@@ -40,7 +39,7 @@ test('wrong recovery secret is rejected without changing existing data', async (
   const created = await createRecoveryBackup({ storage: source });
   const target = new MemoryStorage({ hillion_saved_lessons: '[{"id":"keep"}]' });
   await assert.rejects(
-    restoreRecoveryBackup({ backup: created.backup, recoverySecret: 'a'.repeat(40), storage: target }),
+    restoreRecoveryBackup({ backup: created.backup, recoveryCode: 'H5LL10N-' + 'A'.repeat(40), storage: target }),
     /could not be decrypted/
   );
   assert.equal(target.getItem('hillion_saved_lessons'), '[{"id":"keep"}]');
