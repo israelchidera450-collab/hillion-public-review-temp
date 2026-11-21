@@ -40,7 +40,7 @@ test('wrong recovery code is rejected without changing existing data', async () 
   const target = new MemoryStorage({ hillion_saved_lessons: '[{"id":"keep"}]' });
   await assert.rejects(
     restoreRecoveryBackup({ backup: created.backup, recoveryCode: 'H5LL10N-' + 'A'.repeat(40), storage: target }),
-    /recovery code is missing or invalid/
+    /could not be decrypted/
   );
   assert.equal(target.getItem('hillion_saved_lessons'), '[{"id":"keep"}]');
 });
