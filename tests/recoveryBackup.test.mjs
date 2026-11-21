@@ -34,7 +34,7 @@ test('encrypted recovery backup restores HILLION records on a fresh device', asy
   assert.equal(target.getItem('unrelated_preference'), null);
 });
 
-test('wrong recovery secret is rejected without changing existing data', async () => {
+test('wrong recovery code is rejected without changing existing data', async () => {
   const source = new MemoryStorage({ hillion_saved_lessons: '[{"id":"x"}]' });
   const created = await createRecoveryBackup({ storage: source });
   const target = new MemoryStorage({ hillion_saved_lessons: '[{"id":"keep"}]' });
@@ -50,7 +50,7 @@ test('invalid or tampered backup is rejected', async () => {
   const created = await createRecoveryBackup({ storage: source });
   const tampered = { ...created.backup, ciphertext: created.backup.ciphertext.slice(0, -4) + 'AAAA' };
   await assert.rejects(
-    restoreRecoveryBackup({ backup: tampered, recoverySecret: created.recoverySecret, storage: new MemoryStorage() }),
+    restoreRecoveryBackup({ backup: tampered, recoveryCode: created.recoveryCode, storage: new MemoryStorage() }),
     /could not be decrypted/
   );
 });
