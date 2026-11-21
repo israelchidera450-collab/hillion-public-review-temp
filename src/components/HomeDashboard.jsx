@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { getLessons, updateLesson, deleteLesson } from '../utils/lessonStorage'
 import { createRecoveryBackup, restoreRecoveryBackup } from '../utils/recoveryBackup'
 import { Capacitor, registerPlugin } from '@capacitor/core'
@@ -28,8 +28,7 @@ export default function HomeDashboard({
   const [modelStatus, setModelStatus] = useState({ ready: false, sizeMB: 0 })
   const [modelBusy, setModelBusy] = useState(false)
   const [modelMessage, setModelMessage] = useState('')
-  const [historyRevision, setHistoryRevision] = useState(0)
-  const historyLessons = useMemo(() => getLessons(), [recentBoards, historyRevision])
+  const [historyLessons, setHistoryLessons] = useState(() => recentBoards.length ? recentBoards : getLessons())
   const [managementLesson, setManagementLesson] = useState(null)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
@@ -44,7 +43,7 @@ export default function HomeDashboard({
   const longPressTriggeredRef = useRef(false)
 
   function refreshHistory() {
-    setHistoryRevision(revision => revision + 1)
+    setHistoryLessons(getLessons())
   }
 
   function stopLongPress() {
