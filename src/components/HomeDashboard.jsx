@@ -9,7 +9,6 @@ const HillionInference = registerPlugin('HillionInference')
 export default function HomeDashboard({
   onStartLesson,
   onOpenHistory,
-  recentBoards = [],
   recoveryLesson = null,
   onResumeLesson,
   onStartFresh,
@@ -28,7 +27,8 @@ export default function HomeDashboard({
   const [modelStatus, setModelStatus] = useState({ ready: false, sizeMB: 0 })
   const [modelBusy, setModelBusy] = useState(false)
   const [modelMessage, setModelMessage] = useState('')
-  const [historyLessons, setHistoryLessons] = useState(() => recentBoards.length ? recentBoards : getLessons())
+  const [, setHistoryRevision] = useState(0)
+  const historyLessons = getLessons()
   const [managementLesson, setManagementLesson] = useState(null)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
@@ -43,7 +43,7 @@ export default function HomeDashboard({
   const longPressTriggeredRef = useRef(false)
 
   function refreshHistory() {
-    setHistoryLessons(getLessons())
+    setHistoryRevision(revision => revision + 1)
   }
 
   function stopLongPress() {
