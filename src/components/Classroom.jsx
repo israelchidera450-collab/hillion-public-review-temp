@@ -786,10 +786,26 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [isFollowingLive, setIsFollowingLive] = useState(true)
   const [showReturnToLive, setShowReturnToLive] = useState(false)
   const boardRef = useRef(null)
+  const avatarControlRef = useRef(null)
   const pinchRef = useRef(null)
   const zoomRef = useRef(zoom)
   useEffect(() => { zoomRef.current = zoom }, [zoom])
 
+  useEffect(() => {
+    const updateAvatarGaze = (event) => {
+      const avatar = avatarControlRef.current
+      if (!avatar) return
+      const bounds = avatar.getBoundingClientRect()
+      const centerX = bounds.left + bounds.width / 2
+      const centerY = bounds.top + bounds.height / 2
+      const x = Math.max(-1.25, Math.min(1.25, (event.clientX - centerX) / Math.max(1, window.innerWidth / 2) * 1.8))
+      const y = Math.max(-0.8, Math.min(0.8, (event.clientY - centerY) / Math.max(1, window.innerHeight / 2) * 1.2))
+      avatar.style.setProperty('--avatar-gaze-x', `${x.toFixed(2)}px`)
+      avatar.style.setProperty('--avatar-gaze-y', `${y.toFixed(2)}px`)
+    }
+    window.addEventListener('pointermove', updateAvatarGaze, { passive: true })
+    return () => window.removeEventListener('pointermove', updateAvatarGaze)
+  }, [])
   // Keep the microphone indicator, native/browser recognition callbacks and
   // confirmation tones in one state transition path. This prevents duplicate
   // tones when Android reports a final result after the user taps Stop.
@@ -1667,7 +1683,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
       <footer className="floating-controls" aria-label="Classroom controls">
         <div className="control-cluster control-presence">
-          <button className={`avatar-control ${isSpeaking ? 'avatar-speaking' : ''}`} aria-label={isSpeaking ? 'Hillion is speaking' : 'Hillion voice indicator'} title={isSpeaking ? 'Hillion is speaking' : 'Hillion tutor'}>
+          <button ref={avatarControlRef} className={`avatar-control ${isSpeaking ? 'avatar-speaking' : ''}`} aria-label={isSpeaking ? 'Hillion is speaking' : 'Hillion voice indicator'} title={isSpeaking ? 'Hillion is speaking' : 'Hillion tutor'}>
             <AvatarIcon speaking={isSpeaking} />
             <span className="avatar-badge">✦</span>
           </button>
