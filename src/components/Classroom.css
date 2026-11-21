@@ -1418,20 +1418,27 @@
 }
 
 
-/* Streaming cursor: anchored after the live text instead of a free-running pen. */
-.hillion-writing-pen { display: none !important; }
-.hillion-writing-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1.05em;
-  margin-left: 4px;
-  vertical-align: -0.16em;
-  border-radius: 2px;
-  background: #238b57;
-  animation: hillion-cursor-blink 1s steps(2, start) infinite;
+/* The writing pen is anchored to the live text's final rendered glyph. */
+.lesson-rich-content { position: relative; }
+.hillion-writing-pen {
+  position: absolute;
+  z-index: 3;
+  width: 25px;
+  height: 25px;
+  pointer-events: none;
+  transform: rotate(-8deg);
+  transform-origin: 5px 23px;
+  filter: drop-shadow(0 2px 2px rgba(35, 45, 38, .2));
+  animation: hillion-pen-writing .34s ease-in-out infinite alternate;
+  transition: left 70ms linear, top 70ms linear, opacity 80ms ease;
 }
-@keyframes hillion-cursor-blink {
-  to { visibility: hidden; }
+.hillion-writing-pen svg { display:block; width:100%; height:100%; }
+@keyframes hillion-pen-writing {
+  from { transform: rotate(-11deg) translateY(0); }
+  to { transform: rotate(-4deg) translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hillion-writing-pen { animation: none; transition: none; }
 }
 
 /* Clear, touch-friendly classroom control states. */
