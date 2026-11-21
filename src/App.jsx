@@ -1140,7 +1140,7 @@ Do not invent structures or relationships.
     const generate = async (messages, maxTokens, onChunk, requireComplete = false, continuationDepth = 0) => {
       const requestController = new AbortController();
       const timeoutState = { timedOut: false };
-      let reply = '';
+      const replyState = { text: '' };
 
       const abortFromLesson = () => {
         console.warn('[HILLION DIAGNOSTIC] Request aborted by lesson controller:', {
@@ -1212,7 +1212,7 @@ Do not invent structures or relationships.
           const piece = choice?.delta?.content;
 
           if (typeof piece === 'string' && piece.length > 0) {
-            reply += piece;
+            replyState.text += piece;
 
             if (typeof onChunk === 'function') {
               onChunk(piece);
@@ -1241,7 +1241,7 @@ Do not invent structures or relationships.
           processLine(buffer);
         }
 
-        if (!reply.trim()) {
+        if (!replyState.text.trim()) {
           throw new Error("The AI returned an empty response.");
         }
 
