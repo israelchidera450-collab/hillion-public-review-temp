@@ -1,0 +1,59 @@
+name: HILLION Android compile verification
+
+on:
+  push:
+    branches:
+      - hillion-complete-implementation-2026-11-21
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  android-debug-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glslc
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.31.6"
+      - name: Bootstrap pinned on-device AI engine
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: bash scripts/setup-native-ai.sh
+      - name: Configure Android SDK
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+      - name: Install web dependencies
+        run: npm ci
+      - name: Build web assets
+        run: npm run build
+      - name: Synchronise Capacitor
+        run: npx cap sync android
+      - name: Compile Android debug APK (CI debug key only)
+        working-directory: android
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --max-workers=2
+      - name: Verify APK package and signature presence
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | head -n 1
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "$APK"
