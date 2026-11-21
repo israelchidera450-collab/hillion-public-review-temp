@@ -1,3 +1,4 @@
+# Release signing secrets are checked on branch pushes; never expose their values in logs.
 name: HILLION Android compile verification
 
 on:
