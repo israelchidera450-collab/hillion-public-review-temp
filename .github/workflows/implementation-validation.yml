@@ -22,6 +22,8 @@ jobs:
         run: npm ci
       - name: Run static lint checks
         run: npm run lint
+      - name: Detect exact duplicate source files
+        run: node scripts/check-source-duplicates.mjs
       - name: Run automated tests
         run: npm test
       - name: Build production web app
