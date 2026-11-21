@@ -1688,3 +1688,23 @@
   .lesson-rich-content .lesson-bullet-list,
   .lesson-rich-content .lesson-numbered-list { line-height: 1.78; }
 }
+
+.voice-preference-control {
+  display: block;
+  margin: 12px 0 5px;
+  color: #526356;
+  font-size: 12px;
+  font-weight: 700;
+}
+.voice-preference-select {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 8px 11px;
+  border: 1px solid #dce5dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #263b32;
+  font: inherit;
+}
