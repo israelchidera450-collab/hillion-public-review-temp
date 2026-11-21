@@ -787,7 +787,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const boardRef = useRef(null)
   const pinchRef = useRef(null)
   const zoomRef = useRef(zoom)
-  zoomRef.current = zoom
+  useEffect(() => { zoomRef.current = zoom }, [zoom])
 
   // Keep the microphone indicator, native/browser recognition callbacks and
   // confirmation tones in one state transition path. This prevents duplicate
