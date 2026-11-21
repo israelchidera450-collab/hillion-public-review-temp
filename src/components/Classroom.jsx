@@ -716,6 +716,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [questionDraft, setQuestionDraft] = useState('')
   const [isAskingQuestion, setIsAskingQuestion] = useState(false)
   const [questionError, setQuestionError] = useState('')
+  const [selectedPassage, setSelectedPassage] = useState('')
   const recognitionRef = useRef(null)
   const [progressStage, setProgressStage] = useState(0)
   const speechRef = useRef(null)
@@ -1228,7 +1229,8 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     setIsAskingQuestion(true);
     setQuestionError('');
     try {
-      await onAskQuestion(question);
+      await onAskQuestion(question, selectedPassage);
+      setSelectedPassage('');
       setQuestionDraft('');
       setIsComposerOpen(false);
     } catch (error) {
@@ -1396,7 +1398,21 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
         <button onClick={zoomIn} aria-label="Zoom in" disabled={zoom >= 2}>+</button>
       </nav>
 
-      <section ref={boardRef} className="classroom-board">
+      <section ref={boardRef} className="classroom-board" onMouseUp={() => {
+        const text = window.getSelection?.()?.toString?.().trim() || '';
+        if (text.length > 2 && text.length <= 1600) {
+          setSelectedPassage(text);
+          setIsComposerOpen(true);
+        }
+      }} onTouchEnd={() => {
+        window.setTimeout(() => {
+          const text = window.getSelection?.()?.toString?.().trim() || '';
+          if (text.length > 2 && text.length <= 1600) {
+            setSelectedPassage(text);
+            setIsComposerOpen(true);
+          }
+        }, 0);
+      }}>
         <div className="board-paper" style={{ zoom: zoom }}>
           {subject && (
             <div className="lesson-subject">{subject}</div>
@@ -1527,12 +1543,19 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
       {isComposerOpen && (
         <form className="classroom-question-composer" onSubmit={submitClassroomQuestion}>
           <label htmlFor="hillion-follow-up">Ask a follow-up question</label>
+          {selectedPassage && (
+            <div className="selected-passage-context">
+              <strong>Passage selected for clarification</strong>
+              <p>“{selectedPassage}”</p>
+              <button type="button" onClick={() => setSelectedPassage('')}>Clear selection</button>
+            </div>
+          )}
           <div className="classroom-question-row">
             <input
               id="hillion-follow-up"
               value={questionDraft}
               onChange={event => setQuestionDraft(event.target.value)}
-              placeholder="Ask Hillion to explain, clarify or add an example..."
+              placeholder={selectedPassage ? "Ask about the selected passage, or tap Send to explain it..." : "Ask Hillion to explain, clarify or add an example..."}
               disabled={isAskingQuestion}
             />
             <button type="submit" disabled={!questionDraft.trim() || isAskingQuestion}>
