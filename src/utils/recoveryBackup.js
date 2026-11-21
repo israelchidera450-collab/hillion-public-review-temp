@@ -94,7 +94,7 @@ export async function restoreRecoveryBackup({ backup, recoveryCode, storage = gl
     throw new Error('This is not a supported HILLION backup.');
   }
   if (typeof recoveryCode !== 'string' || !/^H5LL10N-[A-F0-9]{40}$/.test(recoveryCode)) {
-    throw new Error('The recovery secret is missing or invalid.');
+    throw new Error('The HILLION recovery code is missing or invalid.');
   }
   if (!storage) throw new Error('HILLION local storage is unavailable.');
 
