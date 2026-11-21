@@ -56,7 +56,7 @@ function collectHillionData(storage = globalThis.localStorage) {
 
 /**
  * Creates an encrypted, portable backup. The recovery code identifies this
- * backup; the separate recovery secret encrypts it and must be kept safely.
+ * backup. Keep the recovery code and exported encrypted file; both are required.
  */
 export async function createRecoveryBackup({ storage = globalThis.localStorage } = {}) {
   const crypto = getCrypto();
@@ -108,7 +108,7 @@ export async function restoreRecoveryBackup({ backup, recoveryCode, storage = gl
     );
     payload = JSON.parse(new TextDecoder().decode(plaintext));
   } catch {
-    throw new Error('Backup could not be decrypted. Check the recovery secret and backup file.');
+    throw new Error('Backup could not be decrypted. Check the recovery code and backup file.');
   }
 
   if (
