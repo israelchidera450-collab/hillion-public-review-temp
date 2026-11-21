@@ -30,73 +30,6 @@ const makeShape = (type, values = {}) => ({
   ...values
 });
 
-function createCellVisual(kind, title, description, caption) {
-  const plant = /plant/i.test(kind + ' ' + title);
-
-  const elements = [
-    makeShape('ellipse', {
-      cx: 500, cy: 500, rx: 390, ry: 300,
-      fill: plant ? '#E8F1D9' : '#F8E9DC',
-      stroke: COLORS.green, strokeWidth: 9
-    }),
-    makeShape('ellipse', {
-      cx: 500, cy: 500, rx: 345, ry: 255,
-      fill: '#FFF9ED', stroke: '#B9C9A8', strokeWidth: 4
-    }),
-    makeShape('ellipse', {
-      cx: 490, cy: 480, rx: 105, ry: 85,
-      fill: COLORS.palePurple, stroke: COLORS.purple, strokeWidth: 5
-    }),
-    makeText(490, 485, 'Nucleus', { fontSize: 25 }),
-    makeShape('ellipse', {
-      cx: 300, cy: 390, rx: 65, ry: 30,
-      fill: COLORS.paleGreen, stroke: COLORS.green, strokeWidth: 4
-    }),
-    makeText(300, 400, 'Organelle', { fontSize: 17 }),
-    makeShape('ellipse', {
-      cx: 690, cy: 390, rx: 60, ry: 30,
-      fill: COLORS.paleGold, stroke: COLORS.gold, strokeWidth: 4
-    }),
-    makeText(690, 400, 'Organelle', { fontSize: 17 }),
-    makeShape('ellipse', {
-      cx: 320, cy: 650, rx: 45, ry: 25,
-      fill: COLORS.paleRed, stroke: COLORS.red, strokeWidth: 4
-    }),
-    makeShape('ellipse', {
-      cx: 680, cy: 650, rx: 45, ry: 25,
-      fill: COLORS.paleBlue, stroke: COLORS.blue, strokeWidth: 4
-    }),
-    makeText(500, 875, plant ? 'Plant cell — schematic' : 'Animal cell — schematic', {
-      fontSize: 28,
-      fontWeight: 700
-    })
-  ];
-
-  if (plant) {
-    elements.push(
-      makeShape('rect', {
-        x: 110, y: 200, width: 780, height: 600,
-        fill: 'none', stroke: '#83A85C', strokeWidth: 12
-      }),
-      makeShape('ellipse', {
-        cx: 500, cy: 650, rx: 150, ry: 65,
-        fill: '#E2EFCB', stroke: '#83A85C', strokeWidth: 4
-      }),
-      makeText(500, 660, 'Large vacuole', { fontSize: 23 })
-    );
-  }
-
-  return {
-    renderer: 'svg',
-    kind: 'cell',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 1000',
-    elements
-  };
-}
-
 function createMoleculeVisual(title, description, caption) {
   const source = (title + ' ' + description + ' ' + caption).toLowerCase();
 
@@ -219,124 +152,6 @@ function createMoleculeVisual(title, description, caption) {
   };
 }
 
-function createGraphVisual(title, description, caption) {
-  const elements = [
-    makeShape('line', {
-      x1: 150, y1: 750, x2: 850, y2: 750,
-      stroke: COLORS.ink, strokeWidth: 5
-    }),
-    makeShape('line', {
-      x1: 200, y1: 800, x2: 200, y2: 150,
-      stroke: COLORS.ink, strokeWidth: 5
-    }),
-    makeShape('path', {
-      d: 'M 220 720 Q 380 680 480 520 T 820 180',
-      fill: 'none',
-      stroke: COLORS.blue,
-      strokeWidth: 12
-    }),
-    makeText(500, 830, 'Independent variable', { fontSize: 24 }),
-    makeText(100, 120, 'Dependent variable', { fontSize: 22 }),
-    makeText(510, 100, 'Illustrative graph', {
-      fontSize: 29,
-      fontWeight: 700
-    })
-  ];
-
-  return {
-    renderer: 'svg',
-    kind: 'graph',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 900',
-    elements
-  };
-}
-
-function createTimelineVisual(title, description, caption) {
-  const elements = [
-    makeShape('line', {
-      x1: 130, y1: 450, x2: 870, y2: 450,
-      stroke: COLORS.muted, strokeWidth: 8
-    })
-  ];
-
-  const positions = [
-    { x: 200, year: 'Event 1' },
-    { x: 500, year: 'Event 2' },
-    { x: 800, year: 'Event 3' }
-  ];
-
-  positions.forEach((item, index) => {
-    elements.push(
-      makeShape('circle', {
-        cx: item.x,
-        cy: 450,
-        r: 24,
-        fill: [COLORS.green, COLORS.blue, COLORS.gold][index],
-        stroke: COLORS.ink,
-        strokeWidth: 3
-      }),
-      makeText(item.x, 390, item.year, { fontSize: 24 }),
-      makeText(item.x, 525, 'Date / period', { fontSize: 19 })
-    );
-  });
-
-  return {
-    renderer: 'svg',
-    kind: 'timeline',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 850',
-    elements
-  };
-}
-
-function createCircuitVisual(title, description, caption) {
-  const elements = [
-    makeShape('path', {
-      d: 'M 250 250 H 750 V 650 H 250 Z',
-      fill: 'none',
-      stroke: COLORS.ink,
-      strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 250, y1: 400, x2: 250, y2: 500,
-      stroke: COLORS.ink, strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 220, y1: 430, x2: 280, y2: 430,
-      stroke: COLORS.red, strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 230, y1: 470, x2: 270, y2: 470,
-      stroke: COLORS.red, strokeWidth: 4
-    }),
-    makeShape('circle', {
-      cx: 500, cy: 250, r: 65,
-      fill: COLORS.paleGold, stroke: COLORS.gold, strokeWidth: 5
-    }),
-    makeText(500, 265, 'R', { fontSize: 43, fontWeight: 700 }),
-    makeText(500, 760, 'Simple circuit schematic', {
-      fontSize: 28,
-      fontWeight: 700
-    })
-  ];
-
-  return {
-    renderer: 'svg',
-    kind: 'circuit',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 850',
-    elements
-  };
-}
-
-
 // Render AI-authored, subject-specific diagrams from a tightly constrained SVG
 // primitive schema. Geometry and labels come from the lesson planner; the app
 // validates every field and never executes model-provided markup.
@@ -409,37 +224,16 @@ function createStructuredVisual(visual) {
 }
 
 function identifyTemplate(visual) {
-  const text = [
-    visual.kind,
-    visual.title,
-    visual.purpose,
-    visual.description
-  ].join(' ').toLowerCase();
+  const text = [visual.kind, visual.title, visual.purpose, visual.description]
+    .join(' ')
+    .toLowerCase();
 
-  if (/\b(plant cell|animal cell|cell structure|cell organelles)\b/.test(text)) {
-    return 'cell';
-  }
-
-  if (/\b(water molecule|molecule|molecular structure|chemical bond)\b/.test(text)) {
-    return 'molecule';
-  }
-
-  if (/\b(graph|coordinate|plot|linear function|quadratic function)\b/.test(text)) {
-    return 'graph';
-  }
-
-  if (/\b(timeline|historical sequence|chronology)\b/.test(text)) {
-    return 'timeline';
-  }
-
-  if (/\b(circuit|electrical circuit)\b/.test(text)) {
-    return 'circuit';
-  }
-
-  return null;
+  return /\\b(water molecule|molecule|molecular structure|chemical bond)\\b/.test(text)
+    ? 'molecule'
+    : null;
 }
 
-export function generateSectionVisuals(visualPlan = [], context = {}) {
+export function generateSectionVisuals(visualPlan = []) {
   // Visuals must be explicitly planned by the lesson model. Never infer a
   // diagram merely from a topic heading: that previously produced generic,
   // potentially misleading cell/graph/timeline illustrations.
