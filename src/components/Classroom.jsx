@@ -159,6 +159,61 @@ function renderInlineText(text) {
 }
 
 function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
+  const richContentRef = useRef(null);
+  const penRef = useRef(null);
+
+  useEffect(() => {
+    if (!isStreaming) return;
+    const root = richContentRef.current;
+    const pen = penRef.current;
+    if (!root || !pen) return;
+
+    let frame = 0;
+    const placePen = () => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let lastText = null;
+      while (walker.nextNode()) {
+        if (walker.currentNode.nodeValue?.length) lastText = walker.currentNode;
+      }
+      if (!lastText) {
+        pen.style.opacity = '0';
+        return;
+      }
+      const range = document.createRange();
+      const offset = Math.max(0, lastText.nodeValue.length - 1);
+      range.setStart(lastText, offset);
+      range.setEnd(lastText, Math.min(lastText.nodeValue.length, offset + 1));
+      const rect = range.getBoundingClientRect();
+      const rootRect = root.getBoundingClientRect();
+      if (!rect.width && !rect.height) {
+        pen.style.opacity = '0';
+        return;
+      }
+      // Position the pen tip at the actual final rendered glyph, including
+      // wrapped lines, lists, inline emphasis and KaTeX output.
+      pen.style.left = `${rect.right - rootRect.left + root.scrollLeft - 3}px`;
+      pen.style.top = `${rect.bottom - rootRect.top + root.scrollTop - 15}px`;
+      pen.style.opacity = '1';
+    };
+
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(placePen);
+    };
+    schedule();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(root);
+    const board = root.closest('.classroom-board');
+    board?.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      board?.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [content, sectionHeading, isStreaming]);
+
   function cleanStreamingText(value) {
     if (!isStreaming) return value;
     return value.split("\n").map(line => {
@@ -362,10 +417,10 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
   }
 
   return (
-    <div className="lesson-rich-content">
+    <div className="lesson-rich-content" ref={richContentRef}>
       {blocks}
       {isStreaming && (
-        <span className="hillion-writing-cursor" aria-label="Hillion is writing" />
+        <span ref={penRef} className="hillion-writing-pen" aria-label="Hillion writing position"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 23.5 21.8 6.7a3.2 3.2 0 0 1 4.5 0l.9.9a3.2 3.2 0 0 1 0 4.5L10.4 28.9 4 30z" fill="#F5D47A" stroke="#263B32" strokeWidth="1.7" strokeLinejoin="round"/><path d="m19.8 8.7 6.5 6.5M4 30l6.4-1.1-5.3-5.4z" fill="#fff" stroke="#263B32" strokeWidth="1.4"/><path d="m4 30 1.1-6.5 5.3 5.4z" fill="#263B32"/></svg></span>
       )}
     </div>
   );
