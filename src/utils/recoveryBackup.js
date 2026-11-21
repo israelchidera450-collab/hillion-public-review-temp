@@ -22,7 +22,7 @@ function fromBase64(value) {
 
 function makeRecoveryCode() {
   const bytes = getCrypto().getRandomValues(new Uint8Array(8));
-  return 'H5LL10N-' + Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+  return 'H5LL10N-' + Array.from(getCrypto().getRandomValues(new Uint8Array(20)), byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
 async function deriveKey(secret, salt) {
@@ -62,13 +62,9 @@ function collectHillionData(storage = globalThis.localStorage) {
 export async function createRecoveryBackup({ storage = globalThis.localStorage } = {}) {
   const crypto = getCrypto();
   const recoveryCode = makeRecoveryCode();
-  const recoverySecret = Array.from(
-    crypto.getRandomValues(new Uint8Array(20)),
-    byte => byte.toString(16).padStart(2, '0')
-  ).join('');
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(recoverySecret, salt);
+  const key = await deriveKey(recoveryCode, salt);
   const payload = {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -80,7 +76,6 @@ export async function createRecoveryBackup({ storage = globalThis.localStorage }
   const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
   return {
     recoveryCode,
-    recoverySecret,
     backup: {
       format: BACKUP_FORMAT,
       version: BACKUP_VERSION,
@@ -95,18 +90,18 @@ export async function createRecoveryBackup({ storage = globalThis.localStorage }
  * Restores a previously exported encrypted backup. Existing HILLION records
  * are snapshotted first and rolled back if any write fails.
  */
-export async function restoreRecoveryBackup({ backup, recoverySecret, storage = globalThis.localStorage }) {
+export async function restoreRecoveryBackup({ backup, recoveryCode, storage = globalThis.localStorage }) {
   if (!backup || backup.format !== BACKUP_FORMAT || backup.version !== BACKUP_VERSION) {
     throw new Error('This is not a supported HILLION backup.');
   }
-  if (typeof recoverySecret !== 'string' || recoverySecret.length < 32) {
+  if (typeof recoveryCode !== 'string' || !/^H5LL10N-[A-F0-9]{40}$/.test(recoveryCode)) {
     throw new Error('The recovery secret is missing or invalid.');
   }
   if (!storage) throw new Error('HILLION local storage is unavailable.');
 
   let payload;
   try {
-    const key = await deriveKey(recoverySecret, fromBase64(backup.salt));
+    const key = await deriveKey(recoveryCode, fromBase64(backup.salt));
     const plaintext = await getCrypto().subtle.decrypt(
       { name: 'AES-GCM', iv: fromBase64(backup.iv) },
       key,
