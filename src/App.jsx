@@ -2174,6 +2174,20 @@ Do not invent structures or relationships.
   }
 
   async function askClassroomQuestion(question, selectedPassage = '') {
+    const shouldResumeAfterClarification = Boolean(
+      isLessonLoading ||
+      ['paused', 'in-progress'].includes(getActiveLesson()?.status)
+    );
+    if (isLessonLoading) {
+      interruptLesson();
+      const stopDeadline = Date.now() + 15000;
+      while (lessonAbortRef.current && Date.now() < stopDeadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      if (lessonAbortRef.current) {
+        throw new Error('The lecture is still stopping. Your saved progress is safe; please try the clarification again.');
+      }
+    }
     const cleanQuestion = String(question || '').trim();
     if (!cleanQuestion) return;
 
@@ -2212,24 +2226,30 @@ Do not invent structures or relationships.
       const answer = data?.choices?.[0]?.message?.content?.trim();
       if (!answer) throw new Error('The AI server returned an empty answer.');
 
-      const heading = `Follow-up: ${cleanQuestion.slice(0, 90)}`;
-      const followUpSection = {
-        type: 'clarification',
-        heading: selectedPassage ? 'Clarification: selected passage' : heading,
-        content: answer,
-        clarifiedPassage: selectedPassage || '',
-        visualPlan: [],
-        visuals: generateSectionVisuals([], { heading, topic: lessonTopic, subject: lessonSubject, goal: cleanQuestion })
-      };
+      const heading = selectedPassage
+        ? 'Clarification: ' + selectedPassage.slice(0, 72)
+        : `Follow-up: ${cleanQuestion.slice(0, 90)}`;
       const matchedSectionIndex = selectedPassage
         ? lessonSections.findIndex(section => String(section.content || '').includes(selectedPassage))
         : -1;
-      const insertionIndex = matchedSectionIndex >= 0 ? matchedSectionIndex + 1 : lessonSections.length;
-      const updatedSections = [
-        ...lessonSections.slice(0, insertionIndex),
-        followUpSection,
-        ...lessonSections.slice(insertionIndex)
-      ];
+      const matchedLiveDraft = Boolean(
+        selectedPassage &&
+        String(liveDraftRef.current?.content || activeLesson?.liveDraft?.content || '').includes(selectedPassage)
+      );
+      const previousClarifications = Array.isArray(activeLesson?.clarifications)
+        ? activeLesson.clarifications
+        : [];
+      const clarification = {
+        id: `clarification-${Date.now()}`,
+        heading,
+        content: answer,
+        clarifiedPassage: selectedPassage || '',
+        question: cleanQuestion,
+        afterSectionIndex: matchedSectionIndex >= 0 ? matchedSectionIndex : null,
+        targetLiveDraft: matchedLiveDraft,
+        createdAt: new Date().toISOString()
+      };
+      const updatedClarifications = [...previousClarifications, clarification];
       const updatedConversation = [
         ...(lessonConversation || []),
         { role: 'user', content: cleanQuestion },
@@ -2241,16 +2261,18 @@ Do not invent structures or relationships.
         title: lessonTitle || lessonTopic || 'HILLION lesson',
         topic: lessonTopic,
         subject: lessonSubject,
-        sections: updatedSections,
+        sections: lessonSections,
+        clarifications: updatedClarifications,
         conversation: updatedConversation,
         resumeCheckpoint: {
           sectionCount: lessonSections.length,
           liveDraft: liveDraftRef.current ? {
+            ...liveDraftRef.current,
             heading: liveDraftRef.current.heading || '',
             content: liveDraftRef.current.content || ''
           } : activeLesson?.liveDraft || null,
           clarifiedPassage: selectedPassage || '',
-          clarificationInsertedAt: insertionIndex,
+          clarificationId: clarification.id,
           updatedAt: new Date().toISOString()
         },
         transcript: 'Clarification added beside the relevant section. Resume to continue the lecture.',
@@ -2259,11 +2281,18 @@ Do not invent structures or relationships.
         updatedAt: new Date().toISOString()
       };
 
-      setLessonSections(updatedSections);
       setLessonConversation(updatedConversation);
-      setLessonTranscript('Hillion added your follow-up to the lesson board.');
+      setLessonTranscript('Clarification complete. Hillion is resuming from the saved lecture position.');
       saveLesson(updatedLesson);
       saveActiveLesson(updatedLesson);
+      if (shouldResumeAfterClarification && Array.isArray(updatedLesson.plannedSections) && updatedLesson.plannedSections.length) {
+        await startLesson(
+          updatedLesson.topic || lessonTopic,
+          updatedLesson.learningMode || 'Topic',
+          { ...updatedLesson, status: 'paused' },
+          updatedLesson.teachingStyle || 'Normal'
+        );
+      }
       return answer;
     } catch (error) {
       if (error?.name === 'AbortError') {
