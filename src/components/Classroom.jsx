@@ -876,6 +876,10 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
     selectHillionVoice();
     speechEngine.addEventListener?.('voiceschanged', selectHillionVoice);
+    // The voice preference is a dependency of this effect. Remove the old
+    // listener whenever it reruns so Android does not accumulate stale handlers.
+    const removeVoiceListener = () =>
+      speechEngine.removeEventListener?.('voiceschanged', selectHillionVoice);
 
     const previous = autoNarrationPreviousRef.current;
     const current = String(liveSectionContent || '');
@@ -883,6 +887,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     // A reset or restored draft is not treated as newly written text.
     if (!current.startsWith(previous)) {
       autoNarrationPreviousRef.current = current;
+      removeVoiceListener();
       return;
     }
 
@@ -931,6 +936,8 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     if (speechQueueRef.current.length && !speechRef.current) {
       speakNextChunk();
     }
+
+    return removeVoiceListener;
   }, [liveSectionContent, loading, voicePreference]);
 
   const zoomIn = () => setZoom(value => Math.min(2, Number((value + 0.1).toFixed(1))))
