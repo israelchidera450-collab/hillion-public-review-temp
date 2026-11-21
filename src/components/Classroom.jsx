@@ -174,13 +174,20 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
       let lastVisibleRect = null;
       while (walker.nextNode()) {
         const node = walker.currentNode;
-        if (!node.nodeValue?.length) continue;
+        const value = node.nodeValue || '';
+        // Ignore whitespace-only tails, hidden accessibility copies and
+        // non-rendered math annotations so the tip stays on the last inked glyph.
+        if (!value.trim()) continue;
+        const parent = node.parentElement;
+        if (parent?.closest('[aria-hidden="true"], script, style, .katex-mathml, .visually-hidden')) continue;
+        let offset = value.length - 1;
+        while (offset >= 0 && /\\s/.test(value[offset])) offset--;
+        if (offset < 0) continue;
         const range = document.createRange();
-        const offset = Math.max(0, node.nodeValue.length - 1);
         range.setStart(node, offset);
-        range.setEnd(node, Math.min(node.nodeValue.length, offset + 1));
-        const rect = range.getBoundingClientRect();
-        // Skip hidden MathML/accessibility text and zero-size formatting nodes.
+        range.setEnd(node, offset + 1);
+        const rects = range.getClientRects();
+        const rect = rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0) lastVisibleRect = rect;
       }
       if (!lastVisibleRect) {
