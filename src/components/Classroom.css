@@ -1550,3 +1550,9 @@
 .selected-passage-context button { border:0; background:transparent; color:#67531c; text-decoration:underline; padding:2px 0; font-size:12px; }
 .lesson-section-clarification { margin:18px 0; padding:15px 17px; border-left:4px solid #e4c44f; border-radius:12px; background:#fff9df; }
 .lesson-section-clarification h2 { color:#6d5718; }
+
+.lesson-section-clarification h3 { margin: 0 0 10px; color: #6d5718; }
+.lesson-section-clarification blockquote {
+  margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid #e3c34f;
+  background: rgba(255,255,255,.62); color: #63521d; border-radius: 5px;
+}
