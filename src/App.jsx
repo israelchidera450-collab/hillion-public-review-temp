@@ -1257,7 +1257,7 @@ Do not invent structures or relationships.
           const continuation = await generate(
             [
               ...messages,
-              { role: 'assistant', content: reply },
+              { role: 'assistant', content: replyState.text },
               {
                 role: 'user',
                 content: 'Continue directly from your final words. Finish the incomplete sentence and continue the same explanation. Do not repeat any previous text or restart the section.'
@@ -1269,10 +1269,10 @@ Do not invent structures or relationships.
             continuationDepth + 1
           );
 
-          return reply.trim() + continuation;
+          return replyState.text.trim() + continuation;
         }
 
-        return reply.trim();
+        return replyState.text.trim();
       } catch (error) {
         // Preserve intentional pauses as pauses, not network failures.
         if (controller.signal.aborted) {
