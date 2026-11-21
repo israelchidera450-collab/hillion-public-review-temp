@@ -706,7 +706,7 @@ function SectionSvgIllustration({ visual }) {
   );
 }
 
-function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
+function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], clarifications = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMicActive, setIsMicActive] = useState(false)
@@ -1423,9 +1423,9 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
           {sections.length > 0 || liveSectionContent ? (
             <div className="lesson-content">
               {sections.map((section, index) => (
+                <React.Fragment key={section.id || index}>
                 <article
                   className={`lesson-section lesson-section-${section.type || 'explanation'}`}
-                  key={index}
                 >
                   <h2>{section.heading || section.type || 'Lesson section'}</h2>
                   <div className="lesson-section-content">
@@ -1473,6 +1473,16 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
                     return null;
                   })}
                 </article>
+                {clarifications.filter(item => item.afterSectionIndex === index).map(item => (
+                  <article className="lesson-section-clarification" key={item.id}>
+                    <h3>{item.heading || 'Clarification'}</h3>
+                    {item.clarifiedPassage && <blockquote>{item.clarifiedPassage}</blockquote>}
+                    <div className="lesson-section-content">
+                      <LessonContentRenderer content={item.content} sectionHeading={item.heading} />
+                    </div>
+                  </article>
+                ))}
+                </React.Fragment>
               ))}
               {liveSectionContent && (
                 <article className="lesson-section lesson-section-explanation lesson-section-live">
@@ -1482,6 +1492,15 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
                   </div>
                 </article>
               )}
+              {clarifications.filter(item => item.targetLiveDraft || item.afterSectionIndex === null).map(item => (
+                <article className="lesson-section-clarification" key={item.id}>
+                  <h3>{item.heading || 'Clarification'}</h3>
+                  {item.clarifiedPassage && <blockquote>{item.clarifiedPassage}</blockquote>}
+                  <div className="lesson-section-content">
+                    <LessonContentRenderer content={item.content} sectionHeading={item.heading} />
+                  </div>
+                </article>
+              ))}
             </div>
           ) : content ? (
             <div className="lesson-content"><LessonContentRenderer content={content} /></div>
