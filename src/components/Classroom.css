@@ -1575,7 +1575,7 @@
 .lesson-rich-content .lesson-paragraph,
 .lesson-rich-content .lesson-bullet-list,
 .lesson-rich-content .lesson-numbered-list {
-  font-family: "Kalam", "Bradley Hand", "Chalkboard SE", cursive;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 1.04em;
 }
 .lesson-rich-content .lesson-definition-text {
