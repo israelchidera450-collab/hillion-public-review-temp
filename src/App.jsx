@@ -1510,6 +1510,8 @@ Do not invent structures or relationships.
 
                 kind: String(visual.kind || 'educational_illustration').slice(0, 60),
 
+                renderStyle: ['isometric-3d', 'technical-illustration', 'hand-drawn', 'flat'].includes(visual.renderStyle) ? visual.renderStyle : 'flat',
+
                 title: visual.title.slice(0, 120),
 
                 purpose: String(visual.purpose || '').slice(0, 500),
