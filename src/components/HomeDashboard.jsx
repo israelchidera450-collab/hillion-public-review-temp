@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getLessons, updateLesson, deleteLesson } from '../utils/lessonStorage'
+import { createRecoveryBackup, restoreRecoveryBackup } from '../utils/recoveryBackup'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 
 const HillionModelManager = registerPlugin('HillionModelManager')
@@ -32,6 +33,10 @@ export default function HomeDashboard({
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryMessage, setRecoveryMessage] = useState('')
+  const [recoveryCode, setRecoveryCode] = useState('')
+  const [recoveryBackupFile, setRecoveryBackupFile] = useState(null)
 
   const fileInputRef = useRef(null)
   const longPressTimerRef = useRef(null)
@@ -101,6 +106,46 @@ export default function HomeDashboard({
   }
 
   const renameTargetRef = useRef(null)
+
+
+  async function exportRecoveryBackup() {
+    setRecoveryBusy(true)
+    setRecoveryMessage('Preparing encrypted backup…')
+    try {
+      const result = await createRecoveryBackup()
+      const blob = new Blob([JSON.stringify(result.backup, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'HILLION-encrypted-recovery-backup.json'
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+      setRecoveryCode(result.recoveryCode)
+      setRecoveryMessage('Encrypted backup exported. Keep the recovery code and downloaded file in separate safe places.')
+    } catch (error) {
+      setRecoveryMessage(error?.message || 'Could not create a recovery backup.')
+    } finally {
+      setRecoveryBusy(false)
+    }
+  }
+
+  async function importRecoveryBackup() {
+    if (!recoveryBackupFile || !recoveryCode.trim()) {
+      setRecoveryMessage('Choose your HILLION backup file and enter its recovery code.')
+      return
+    }
+    setRecoveryBusy(true)
+    setRecoveryMessage('Verifying and restoring backup…')
+    try {
+      const parsed = JSON.parse(await recoveryBackupFile.text())
+      const result = await restoreRecoveryBackup({ backup: parsed, recoveryCode: recoveryCode.trim() })
+      setRecoveryMessage(`Restored ${result.restoredKeys.length} HILLION data records. Restart HILLION to reload the restored workspace.`)
+    } catch (error) {
+      setRecoveryMessage(error?.message || 'Could not restore this backup.')
+    } finally {
+      setRecoveryBusy(false)
+    }
+  }
 
   async function refreshModelStatus() {
     if (!Capacitor.isNativePlatform()) return
@@ -662,7 +707,19 @@ export default function HomeDashboard({
               {modelMessage && <small className="model-setup-message" role="status">{modelMessage}</small>}
               <small className="model-setup-note">The first lesson after importing may take longer while HILLION loads the model into memory. After that, inference runs locally without Termux or a separate server.</small>
             </div>
-            <p className="modal-empty">More tutor and voice preferences will be added as those controls become available.</p>
+            <div className="model-setup-panel recovery-backup-panel">
+              <div className="model-setup-heading"><strong>HILLION portable recovery</strong><span>ENCRYPTED</span></div>
+              <p>Export your lessons and app records into an encrypted file. Keep the recovery code and file safe. The code alone cannot retrieve a backup that was never uploaded.</p>
+              <button type="button" className="model-import-button" onClick={exportRecoveryBackup} disabled={recoveryBusy}>{recoveryBusy ? 'Please wait…' : 'Create encrypted backup'}</button>
+              {recoveryCode && <div className="recovery-code-display"><small>YOUR RECOVERY CODE — SAVE IT SECURELY</small><code>{recoveryCode}</code></div>}
+              <label className="settings-label" htmlFor="recovery-code-input">Recovery code</label>
+              <input id="recovery-code-input" className="recovery-code-input" value={recoveryCode} onChange={event => setRecoveryCode(event.target.value.toUpperCase())} placeholder="H5LL10N-…" autoCapitalize="characters" />
+              <label className="settings-label" htmlFor="recovery-file-input">Encrypted backup file</label>
+              <input id="recovery-file-input" type="file" accept="application/json,.json" onChange={event => setRecoveryBackupFile(event.target.files?.[0] || null)} />
+              <button type="button" className="model-import-button" onClick={importRecoveryBackup} disabled={recoveryBusy || !recoveryBackupFile || !recoveryCode.trim()}>Restore HILLION backup</button>
+              {recoveryMessage && <small className="model-setup-message" role="status">{recoveryMessage}</small>}
+            </div>
+            <p className="modal-empty">This portable backup currently covers HILLION localStorage records. The GGUF model file and cloud-only recovery are not included.</p>
             <button type="button" className="modal-done" onClick={() => setSettingsOpen(false)}>Done</button>
           </section>
         </div>
