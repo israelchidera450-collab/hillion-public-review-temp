@@ -62,15 +62,6 @@ function SpeechIcon() {
   )
 }
 
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 28 28" aria-hidden="true">
-      <rect x="7" y="5" width="5" height="18" rx="1" fill="currentColor" />
-      <rect x="16" y="5" width="5" height="18" rx="1" fill="currentColor" />
-    </svg>
-  )
-}
-
 function VolumeIcon() {
   return (
     <svg viewBox="0 0 28 28" aria-hidden="true">
@@ -770,7 +761,6 @@ function SectionSvgIllustration({ visual }) {
 
 function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], clarifications = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isMicActive, setIsMicActive] = useState(false)
   const micActiveRef = useRef(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -1163,7 +1153,6 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     if (!board) return;
 
     let touchStartY = 0;
-    let touchMoved = false;
 
     const pauseFollowing = () => {
       setIsFollowingLive(false);
@@ -1178,12 +1167,10 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
     const handleTouchStart = (event) => {
       if (event.touches.length !== 1) {
-        touchMoved = false;
         return;
       }
 
       touchStartY = event.touches[0].clientY;
-      touchMoved = false;
     };
 
     const handleTouchMove = (event) => {
@@ -1192,13 +1179,11 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
       const movement = event.touches[0].clientY - touchStartY;
 
       if (movement > 8) {
-        touchMoved = true;
         pauseFollowing();
       }
     };
 
     const handleTouchEnd = () => {
-      touchMoved = false;
     };
 
     board.addEventListener('wheel', handleWheel, { passive: true });
