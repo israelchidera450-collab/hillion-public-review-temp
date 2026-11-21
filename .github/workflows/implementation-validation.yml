@@ -20,6 +20,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Run static lint checks
+        run: npm run lint
       - name: Run automated tests
         run: npm test
       - name: Build production web app
