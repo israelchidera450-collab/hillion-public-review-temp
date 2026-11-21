@@ -3,7 +3,7 @@ import './App.css'
 import Classroom from './components/Classroom'
 import ClassroomErrorBoundary from './components/ClassroomErrorBoundary'
 import HomeDashboard from './components/HomeDashboard'
-import { getActiveLesson, saveActiveLesson, saveLesson, getLessons, clearActiveLesson, deleteLesson, restoreStorageFromIndexedDB } from "./utils/lessonStorage"
+import { getActiveLesson, saveActiveLesson, saveLesson, getLessons, clearActiveLesson, restoreStorageFromIndexedDB } from "./utils/lessonStorage"
 import { generateSectionVisuals } from './utils/visualEngine'
 import { checkAIAvailability, requestAI } from './utils/aiClient'
 import './components/HomeDashboard.css'
@@ -47,7 +47,7 @@ useEffect(() => {
 
   return () => clearTimeout(timer)
 }, [])
-  const [subject, setSubject] = useState('Biology')
+  const [subject] = useState('Biology')
   const [lessonTopic, setLessonTopic] = useState('')
 const [isClassroomOpen, setIsClassroomOpen] = useState(false)
   const [isPreparingLesson, setIsPreparingLesson] = useState(false)
@@ -61,9 +61,6 @@ const [isClassroomOpen, setIsClassroomOpen] = useState(false)
   const [lessonSubject, setLessonSubject] = useState('')
   const [lessonDiagram, setLessonDiagram] = useState(null)
 const [isLessonLoading, setIsLessonLoading] = useState(false)
-const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
-const [isPlaying, setIsPlaying] = useState(false)
-const [isMicActive, setIsMicActive] = useState(false)
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState(loadChatHistorySafely)
   const [isLoading, setIsLoading] = useState(false)
@@ -190,14 +187,6 @@ const [textSize, setTextSize] = useState(22)
     setIsClassroomOpen(true);
     startLesson(enrichedTopic, mode, null, teachingStyle);
   }
-
-  const subjects = [
-    { name: 'Biology', icon: '🧬', color: 'green' },
-    { name: 'Chemistry', icon: '⚗️', color: 'orange' },
-    { name: 'Physics', icon: '⚡', color: 'blue' },
-    { name: 'Mathematics', icon: '📐', color: 'purple' },
-    { name: 'English', icon: '📚', color: 'pink' }
-  ]
 
   function getPosition(event) {
     const svg = svgRef.current
@@ -880,7 +869,7 @@ Do not invent structures or relationships.
       { role: 'assistant', content: aiReply }
     ])
 
-  } catch (error) {
+  } catch {
     setMessages(previous => [
       ...previous,
       {
@@ -1006,7 +995,6 @@ Do not invent structures or relationships.
     }
 
     if (overlap) {
-      const normalizedIncoming = incoming.toLowerCase().replace(/\s+/g, ' ');
       let count = 0;
       let cut = 0;
 
@@ -1342,7 +1330,7 @@ Do not invent structures or relationships.
 
               try {
                 return JSON.parse(candidate);
-              } catch (error) {
+              } catch {
                 break;
               }
             }
@@ -1756,9 +1744,6 @@ Do not invent structures or relationships.
       const matchedDiagramTopic = diagramTopicMatchers.find(
         ([, pattern]) => pattern.test(topic)
       );
-
-      const shouldCreateTopicDiagram =
-        topicRequestsDiagram || Boolean(matchedDiagramTopic);
 
       if (!diagramForLesson && matchedDiagramTopic) {
         diagramForLesson = createDiagramTemplate(
