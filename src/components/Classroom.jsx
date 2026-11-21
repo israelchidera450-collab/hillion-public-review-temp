@@ -716,16 +716,16 @@ function SectionSvgIllustration({ visual }) {
             };
 
             if (Shape === 'path') {
-              return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+              return <path {...common} key={index} d={String(element.d || '').slice(0, 5000)} />;
             }
 
             if (Shape === 'polyline' || Shape === 'polygon') {
-              return <Shape {...common} points={String(element.points || '').slice(0, 5000)} />;
+              return <Shape {...common} key={index} points={String(element.points || '').slice(0, 5000)} />;
             }
 
             if (Shape === 'text') {
               return (
-                <text {...common}
+                <text {...common} key={index}
                   x={numberValue(element.x, 0)}
                   y={numberValue(element.y, 0)}
                   fontSize={numberValue(element.fontSize, 24)}
@@ -745,7 +745,7 @@ function SectionSvgIllustration({ visual }) {
               if (value !== undefined) coordinates[key] = value;
             }
 
-            return <Shape {...common} {...coordinates} />;
+            return <Shape {...common} key={index} {...coordinates} />;
           })}
         </svg>
       </div>
