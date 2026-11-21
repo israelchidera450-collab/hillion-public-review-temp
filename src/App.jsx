@@ -1188,7 +1188,7 @@ Do not invent structures or relationships.
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let finishReason = null;
+        const finishState = { reason: null };
 
         const processLine = (line) => {
           const trimmed = line.trim();
@@ -1208,7 +1208,7 @@ Do not invent structures or relationships.
           }
 
           const choice = event.choices?.[0];
-          if (choice?.finish_reason) finishReason = choice.finish_reason;
+          if (choice?.finish_reason) finishState.reason = choice.finish_reason;
           const piece = choice?.delta?.content;
 
           if (typeof piece === 'string' && piece.length > 0) {
@@ -1245,7 +1245,7 @@ Do not invent structures or relationships.
           throw new Error("The AI returned an empty response.");
         }
 
-        if (requireComplete && finishReason === 'length') {
+        if (requireComplete && finishState.reason === 'length') {
           if (continuationDepth >= 3) {
             throw new Error(
               'Hillion reached its automatic continuation limit. Your saved draft is safe. Press Play to continue.'
