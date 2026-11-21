@@ -676,7 +676,7 @@ function SectionSvgIllustration({ visual }) {
   };
 
   return (
-    <section className="lesson-visual-illustration">
+    <section className={`lesson-visual-illustration lesson-visual-style-${visual.renderStyle || "flat"}`}>
       <div className="lesson-diagram-heading">
         <h2>{visual.title || 'Educational illustration'}</h2>
         <div className="diagram-zoom-controls">
