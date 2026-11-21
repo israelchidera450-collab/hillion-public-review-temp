@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { getLessons, updateLesson, deleteLesson } from '../utils/lessonStorage'
 import { createRecoveryBackup, restoreRecoveryBackup } from '../utils/recoveryBackup'
 import { Capacitor, registerPlugin } from '@capacitor/core'
@@ -28,7 +28,8 @@ export default function HomeDashboard({
   const [modelStatus, setModelStatus] = useState({ ready: false, sizeMB: 0 })
   const [modelBusy, setModelBusy] = useState(false)
   const [modelMessage, setModelMessage] = useState('')
-  const [historyLessons, setHistoryLessons] = useState(recentBoards)
+  const [historyRevision, setHistoryRevision] = useState(0)
+  const historyLessons = useMemo(() => getLessons(), [recentBoards, historyRevision])
   const [managementLesson, setManagementLesson] = useState(null)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
@@ -42,12 +43,8 @@ export default function HomeDashboard({
   const longPressTimerRef = useRef(null)
   const longPressTriggeredRef = useRef(false)
 
-  useEffect(() => {
-    setHistoryLessons(recentBoards)
-  }, [recentBoards])
-
   function refreshHistory() {
-    setHistoryLessons(getLessons())
+    setHistoryRevision(revision => revision + 1)
   }
 
   function stopLongPress() {
@@ -192,10 +189,6 @@ export default function HomeDashboard({
       setModelBusy(false)
     }
   }
-
-  useEffect(() => {
-    if (settingsOpen) refreshModelStatus()
-  }, [settingsOpen])
 
   const modes = [
     {
@@ -367,7 +360,7 @@ export default function HomeDashboard({
 
         <div className="sidebar-bottom">
 
-          <button className="sidebar-link" onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}>
+          <button className="sidebar-link" onClick={() => { refreshModelStatus(); setSettingsOpen(true); setMenuOpen(false) }}>
             <span>⚙</span>
             Settings
           </button>
