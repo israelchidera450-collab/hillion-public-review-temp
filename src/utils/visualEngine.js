@@ -228,7 +228,7 @@ function identifyTemplate(visual) {
     .join(' ')
     .toLowerCase();
 
-  return /\\b(water molecule|molecule|molecular structure|chemical bond)\\b/.test(text)
+  return /\b(water molecule|molecule|molecular structure|chemical bond)\b/.test(text)
     ? 'molecule'
     : null;
 }
