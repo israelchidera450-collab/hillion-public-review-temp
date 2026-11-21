@@ -796,7 +796,7 @@
 .lesson-rich-content {
   width: 100%;
   color: #37372f;
-  font-family: "Segoe Print", "Comic Sans MS", cursive, sans-serif;
+  font-family: "Kalam", "Bradley Hand", "Chalkboard SE", cursive;
   font-size: 15px;
   line-height: 1.9;
   overflow-wrap: anywhere;
@@ -1562,4 +1562,37 @@
 .lesson-section-clarification blockquote {
   margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid #e3c34f;
   background: rgba(255,255,255,.62); color: #63521d; border-radius: 5px;
+}
+
+/* Context-aware handwritten lesson typography and emphasis hierarchy. */
+.lesson-section > h2,
+.lesson-rich-content h3,
+.lesson-rich-content h4 {
+  font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
+  letter-spacing: -.025em;
+}
+.lesson-rich-content .lesson-paragraph,
+.lesson-rich-content .lesson-bullet-list,
+.lesson-rich-content .lesson-numbered-list {
+  font-family: "Kalam", "Bradley Hand", "Chalkboard SE", cursive;
+  font-size: 1.04em;
+}
+.lesson-rich-content .lesson-definition-text {
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  font-weight: 600;
+}
+.lesson-rich-content .lesson-display-math-wrapper,
+.lesson-rich-content .lesson-inline-math {
+  font-family: "KaTeX_Main", "Cambria Math", "Times New Roman", serif;
+}
+.lesson-rich-content strong {
+  text-decoration: underline;
+  text-decoration-color: rgba(45, 117, 79, .28);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.lesson-rich-content mark {
+  background: linear-gradient(transparent 17%, #fff0a8 17%, #fff0a8 88%, transparent 88%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
