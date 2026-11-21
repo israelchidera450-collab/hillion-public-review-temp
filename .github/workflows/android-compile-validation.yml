@@ -1,6 +1,7 @@
 name: HILLION Android compile verification
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - hillion-complete-implementation-2026-11-21
@@ -68,3 +69,51 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Prepare permanent release signing key
+        id: release_signing
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          HILLION_RELEASE_KEYSTORE_BASE64: ${{ secrets.HILLION_RELEASE_KEYSTORE_BASE64 }}
+          HILLION_RELEASE_STORE_PASSWORD: ${{ secrets.HILLION_RELEASE_STORE_PASSWORD }}
+          HILLION_RELEASE_KEY_ALIAS: ${{ secrets.HILLION_RELEASE_KEY_ALIAS }}
+          HILLION_RELEASE_KEY_PASSWORD: ${{ secrets.HILLION_RELEASE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$HILLION_RELEASE_KEYSTORE_BASE64" ] || [ -z "$HILLION_RELEASE_STORE_PASSWORD" ] || [ -z "$HILLION_RELEASE_KEY_ALIAS" ] || [ -z "$HILLION_RELEASE_KEY_PASSWORD" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Permanent signing secrets are not configured. No release APK will be produced."
+            exit 0
+          fi
+          KEYSTORE="$RUNNER_TEMP/hillion-release.keystore"
+          printf '%s' "$HILLION_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          test -s "$KEYSTORE"
+          keytool -list -keystore "$KEYSTORE" -storepass "$HILLION_RELEASE_STORE_PASSWORD" -alias "$HILLION_RELEASE_KEY_ALIAS" >/dev/null
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Compile permanently signed release APK
+        if: steps.release_signing.outputs.available == 'true'
+        working-directory: android
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          HILLION_RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/hillion-release.keystore
+          HILLION_RELEASE_STORE_PASSWORD: ${{ secrets.HILLION_RELEASE_STORE_PASSWORD }}
+          HILLION_RELEASE_KEY_ALIAS: ${{ secrets.HILLION_RELEASE_KEY_ALIAS }}
+          HILLION_RELEASE_KEY_PASSWORD: ${{ secrets.HILLION_RELEASE_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon --max-workers=2
+
+      - name: Verify permanently signed release APK
+        if: steps.release_signing.outputs.available == 'true'
+        run: |
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | head -n 1
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+
+      - name: Archive permanently signed release APK
+        if: steps.release_signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HILLION-ANDROID-RELEASE
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
