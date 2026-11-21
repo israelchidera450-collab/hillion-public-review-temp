@@ -1596,3 +1596,26 @@
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* Illustration modes: dimensional classroom drawings without pretending to be CAD. */
+.lesson-visual-style-isometric-3d .lesson-visual-viewport {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255,255,255,.98), rgba(246,244,231,.92) 72%);
+  border: 1px solid #e9e2cd;
+  border-radius: 16px;
+}
+.lesson-visual-style-isometric-3d .lesson-visual-svg {
+  filter: drop-shadow(0 7px 5px rgba(43, 55, 47, .12));
+}
+.lesson-visual-style-isometric-3d .lesson-visual-svg polygon {
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+.lesson-visual-style-technical-illustration .lesson-visual-viewport {
+  background: repeating-linear-gradient(0deg, #fbfcf8 0, #fbfcf8 24px, #edf1e9 25px);
+  border: 1px solid #dce5dc;
+  border-radius: 12px;
+}
+.lesson-visual-style-hand-drawn .lesson-visual-svg {
+  filter: drop-shadow(.35px .45px 0 rgba(38,59,50,.18));
+}
