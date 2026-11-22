@@ -166,7 +166,7 @@ const [textSize, setTextSize] = useState(22)
 
   async function handleDashboardStart({ mode, topic, files = [], link = '', language = 'EN', teachingStyle = 'Normal' }) {
     const resourceNotes = [];
-    if (link) resourceNotes.push(`Resource link supplied by the learner: ${link}. Use it as source context only if accessible; never pretend to have opened it if offline.`);
+    if (link) resourceNotes.push(`Learner-supplied reference link (not fetched by HILLION): ${link}. Treat it as a lead only; do not quote or cite its contents unless the learner supplies the relevant text separately.`);
     for (const file of files) {
       const textLikeFile = file.type.startsWith('text/') ||
         /\.(txt|md|markdown|csv|json|html|htm|xml)$/i.test(file.name);
