@@ -191,6 +191,81 @@ const [textSize, setTextSize] = useState(22)
         resourceNotes.push('Uploaded file: ' + file.name + ' (' + (file.type || 'unknown type') + '). ' + reason);
       }
     }
+    if (mode === 'Research Centre') {
+      setIsClassroomOpen(true);
+      setIsLessonLoading(true);
+      setLessonTranscript('Searching public reference indexes. HILLION will distinguish retrieved summaries from unverified claims...');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const clean = value => String(value || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\s+/g, ' ').trim();
+      const researchRecords = [];
+      try {
+        const requests = await Promise.allSettled([
+          (async () => {
+            const params = new URLSearchParams({
+              action: 'query', list: 'search', srsearch: topic.split('\\n')[0].slice(0, 180),
+              srlimit: '4', format: 'json', origin: '*'
+            });
+            const searchResponse = await fetch('https://en.wikipedia.org/w/api.php?' + params, { signal: controller.signal });
+            if (!searchResponse.ok) throw new Error('Reference index unavailable');
+            const searchData = await searchResponse.json();
+            const titles = (searchData.query?.search || []).map(item => item.title).filter(Boolean).slice(0, 4);
+            if (!titles.length) return [];
+            const detailParams = new URLSearchParams({
+              action: 'query', prop: 'extracts|info', exintro: '1', explaintext: '1',
+              inprop: 'url', titles: titles.join('|'), format: 'json', formatversion: '2', origin: '*'
+            });
+            const detailResponse = await fetch('https://en.wikipedia.org/w/api.php?' + detailParams, { signal: controller.signal });
+            if (!detailResponse.ok) throw new Error('Reference summaries unavailable');
+            const detailData = await detailResponse.json();
+            return (detailData.query?.pages || []).filter(page => page.extract).map(page => ({
+              kind: 'encyclopedia summary', title: page.title, url: page.fullurl || ('https://en.wikipedia.org/wiki/' + encodeURIComponent(page.title.replace(/ /g, '_'))),
+              text: clean(page.extract).slice(0, 1800)
+            }));
+          })(),
+          (async () => {
+            const params = new URLSearchParams({
+              'query.bibliographic': topic.split('\\n')[0].slice(0, 180),
+              rows: '4', select: 'DOI,title,author,published,container-title,URL,type'
+            });
+            const response = await fetch('https://api.crossref.org/works?' + params, { signal: controller.signal });
+            if (!response.ok) throw new Error('Academic index unavailable');
+            const data = await response.json();
+            return (data.message?.items || []).map(item => ({
+              kind: 'academic publication metadata (not full text)',
+              title: clean(item.title?.[0] || 'Untitled publication'),
+              url: item.URL || (item.DOI ? 'https://doi.org/' + item.DOI : ''),
+              text: [
+                'Authors: ' + (item.author || []).slice(0, 5).map(person => [person.given, person.family].filter(Boolean).join(' ')).join(', '),
+                'Published: ' + (item.published?.['date-parts']?.[0]?.join('-') || 'date not supplied'),
+                'Journal/publisher: ' + (item['container-title']?.[0] || 'not supplied'),
+                'DOI: ' + (item.DOI || 'not supplied')
+              ].join('; ')
+            })).filter(item => item.title && item.url);
+          })()
+        ]);
+        for (const result of requests) {
+          if (result.status === 'fulfilled') researchRecords.push(...result.value);
+        }
+      } catch (error) {
+        console.warn('[HILLION RESEARCH] Public source lookup did not complete:', error?.message || error);
+      } finally {
+        clearTimeout(timeout);
+      }
+      const uniqueRecords = researchRecords.filter((record, index, all) =>
+        record.url && all.findIndex(other => other.url === record.url) === index
+      ).slice(0, 7);
+      if (uniqueRecords.length) {
+        resourceNotes.push(
+          'PUBLIC RESEARCH SOURCES RETRIEVED BY HILLION (retrieval date: ' + new Date().toISOString().slice(0, 10) + '):\\n' +
+          uniqueRecords.map((record, index) =>
+            (index + 1) + '. [' + record.kind + '] ' + record.title + '\\nURL: ' + record.url + '\\n' + record.text
+          ).join('\\n\\n')
+        );
+      } else {
+        resourceNotes.push('LIVE RESEARCH LOOKUP: No public sources could be retrieved during this session. Continue using supplied materials and established knowledge, clearly label claims needing verification, and do not invent citations.');
+      }
+    }
     const languageName = ({ EN: 'English', FR: 'French', ES: 'Spanish' })[language] || 'English';
     const enrichedTopic = [topic, `Please teach in ${languageName}.`, ...resourceNotes].join('\n\n');
     setLessonTopic(topic);
@@ -1384,8 +1459,8 @@ Do not invent structures or relationships.
               ...(learningMode === 'Research Centre' ? [
                 'RESEARCH CENTRE MODE: Treat the learner request as a structured research investigation, not a generic lesson.',
                 'Organise the work around a precise research question, scope, key terms, background, evidence themes, methods or reasoning, limitations, and a balanced synthesis.',
-                'Use only facts supported by reliable learned knowledge or materials explicitly supplied in the prompt. This offline tutor has no live web access.',
-                'Never claim to have opened a supplied URL or read an uploaded file unless its actual contents are present in the prompt.',
+                'Use only facts supported by reliable learned knowledge or source records explicitly supplied in the prompt. The app may attach a small number of retrieved public summaries and academic publication metadata; these are not full-paper access.',
+                'Never claim to have opened a learner-supplied URL or read an uploaded file unless its actual contents are present in the prompt. Distinguish encyclopedia summaries from academic publication metadata; metadata is not evidence of a paper\u2019s findings.',
                 'Never invent sources, authors, publication dates, page numbers, quotations, URLs, statistics, or citations. Clearly mark missing evidence and recommend what source needs checking.',
                 'Distinguish established findings from interpretation, uncertainty, and open questions.'
               ] : []),
@@ -1923,7 +1998,7 @@ Do not invent structures or relationships.
               'Teach ONLY the requested section.',
               ...(learningMode === 'Research Centre' ? [
                 'RESEARCH CENTRE MODE: Write this section as part of a careful research report. Keep claims proportional to the evidence available in the supplied context and established knowledge.',
-                'Do not fabricate citations or pretend to browse. Cite a supplied source only when its identifying details are actually present; otherwise say that a source still needs to be verified.',
+                'Do not fabricate citations. Cite a retrieved or supplied source only when its exact title and URL are present in the context. A publication record is metadata, not the full paper or proof of its conclusions.',
                 'Separate evidence, interpretation, assumptions, and unresolved questions. Include counter-evidence or competing explanations where relevant.',
                 'For research methods, explain why the method fits the question, what data it would require, ethical considerations, and its limitations.',
                 'Do not present speculation as a finding or a proposed method as completed research.'
