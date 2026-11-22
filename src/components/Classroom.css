@@ -1722,3 +1722,179 @@
 .hillion-writing-pen::after {
   display: none;
 }
+
+
+/* HILLION CLASSROOM POLISH — touch targets, avatar expression and typography */
+.control-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1.5vw, 10px);
+  min-width: 0;
+}
+
+.control-presence { flex: 0 0 auto; }
+.control-learning { flex: 1 1 auto; }
+.control-input { flex: 0 0 auto; }
+
+.avatar-control {
+  flex-basis: 54px;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  background: linear-gradient(145deg, #e8f7e5, #c9e9d0);
+  box-shadow: 0 3px 12px rgba(34, 115, 66, .16), 0 0 0 2px #fff;
+}
+
+.avatar-control svg { overflow: visible; }
+
+.avatar-pupil {
+  transform: translate(var(--avatar-gaze-x, 0px), var(--avatar-gaze-y, 0px));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 100ms ease-out;
+}
+
+.avatar-mouth {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: ry 100ms ease, transform 100ms ease;
+}
+
+.avatar-mouth-speaking {
+  animation: hillion-avatar-speech 180ms ease-in-out infinite alternate;
+}
+
+@keyframes hillion-avatar-speech {
+  from { transform: scaleY(.65); }
+  to { transform: scaleY(1.65); }
+}
+
+.avatar-control:focus-visible,
+.round-control:focus-visible,
+.microphone-control:focus-visible,
+.classroom-header button:focus-visible {
+  outline: 3px solid rgba(47, 139, 83, .55);
+  outline-offset: 3px;
+}
+
+.voice-preference-control {
+  margin: 6px 7px 0;
+  color: #52665a;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .02em;
+}
+
+.voice-preference-select {
+  width: calc(100% - 14px);
+  min-height: 44px;
+  margin: 0 7px 7px;
+  padding: 9px 12px;
+  border: 1px solid #cbdccf;
+  border-radius: 11px;
+  background: #f5faf5;
+  color: #263b32;
+  font: inherit;
+  font-size: 14px;
+}
+
+.classroom-header {
+  background: rgba(255, 255, 255, .98);
+  border-bottom-color: #e4e9e2;
+  box-shadow: 0 2px 12px rgba(34, 54, 39, .045);
+}
+
+.classroom-header button {
+  min-width: 36px;
+  min-height: 40px;
+  border-radius: 11px;
+  color: #35483b;
+  font-weight: 650;
+}
+
+.classroom-header button:active {
+  background: #edf5ed;
+  transform: translateY(1px);
+}
+
+.classroom-header span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #315c40;
+  letter-spacing: .11em;
+}
+
+.lesson-rich-content {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #303b34;
+  letter-spacing: .002em;
+}
+
+.lesson-inline-heading,
+.lesson-section h2 {
+  font-family: "Avenir Next", ui-rounded, Inter, system-ui, sans-serif;
+  letter-spacing: -.018em;
+}
+
+.lesson-definition-text {
+  background: linear-gradient(90deg, #edf6ed, #f5f8ee);
+  border-left-color: #78a77d;
+}
+
+.lesson-rich-content mark {
+  background: linear-gradient(transparent 12%, #fff0a2 12%, #fff0a2 91%, transparent 91%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.lesson-rich-content em {
+  color: #526b58;
+}
+
+@media (max-width: 420px) {
+  .floating-controls {
+    min-height: 76px;
+    height: auto;
+    gap: 5px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .avatar-control {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .control-cluster { gap: 5px; }
+  .control-learning { justify-content: space-evenly; }
+  .control-input { gap: 6px; }
+
+  .round-control {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+  }
+
+  .microphone-control {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .classroom-header { padding-left: 7px; padding-right: 7px; }
+  .classroom-header button { min-width: 30px; min-height: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pupil,
+  .avatar-mouth,
+  .avatar-mouth-speaking {
+    transition: none;
+    animation: none;
+  }
+}
