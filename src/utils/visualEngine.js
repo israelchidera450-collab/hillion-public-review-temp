@@ -119,6 +119,56 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 1]],
       shape: 'Diatomic molecule — single covalent bond'
     };
+  } else if (/\b(ethene|ethylene|c2h4)\b/.test(source)) {
+    molecule = {
+      formula: 'C₂H₄',
+      name: 'Ethene',
+      atoms: [
+        { x: 420, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 580, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 300, y: 285, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 300, y: 575, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 700, y: 285, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 700, y: 575, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 }
+      ],
+      bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]],
+      shape: 'Planar carbon–carbon double bond (schematic)'
+    };
+  } else if (/\b(ethyne|acetylene|c2h2)\b/.test(source)) {
+    molecule = {
+      formula: 'C₂H₂',
+      name: 'Ethyne',
+      atoms: [
+        { x: 420, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 580, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 230, y: 430, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 770, y: 430, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 }
+      ],
+      bonds: [[0, 1, 3], [0, 2, 1], [1, 3, 1]],
+      shape: 'Linear carbon–carbon triple bond'
+    };
+  } else if (/\b(benzene|c6h6)\b/.test(source)) {
+    const ring = [
+      { x: 500, y: 235 }, { x: 665, y: 330 }, { x: 665, y: 520 },
+      { x: 500, y: 615 }, { x: 335, y: 520 }, { x: 335, y: 330 }
+    ];
+    const hydrogen = [
+      { x: 500, y: 95 }, { x: 790, y: 255 }, { x: 790, y: 595 },
+      { x: 500, y: 755 }, { x: 210, y: 595 }, { x: 210, y: 255 }
+    ];
+    molecule = {
+      formula: 'C₆H₆',
+      name: 'Benzene',
+      atoms: [
+        ...ring.map(point => ({ ...point, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 39 })),
+        ...hydrogen.map(point => ({ ...point, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 27 }))
+      ],
+      bonds: [
+        [0, 1, 2], [1, 2, 1], [2, 3, 2], [3, 4, 1], [4, 5, 2], [5, 0, 1],
+        [0, 6, 1], [1, 7, 1], [2, 8, 1], [3, 9, 1], [4, 10, 1], [5, 11, 1]
+      ],
+      shape: 'Planar six-membered aromatic ring; alternating bonds are a simplified representation'
+    };
   } else if (/\b(hydrogen chloride|hcl)\b/.test(source)) {
     molecule = {
       formula: 'HCl',
@@ -272,7 +322,7 @@ function identifyTemplate(visual) {
     .join(' ')
     .toLowerCase();
 
-  return /\b(water molecule|molecule|molecular structure|chemical bond)\b/.test(text)
+  return /\b(water molecule|molecule|molecular structure|chemical bond|benzene|ethene|ethylene|ethyne|acetylene)\b/.test(text)
     ? 'molecule'
     : null;
 }
