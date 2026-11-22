@@ -168,15 +168,27 @@ const [textSize, setTextSize] = useState(22)
     const resourceNotes = [];
     if (link) resourceNotes.push(`Resource link supplied by the learner: ${link}. Use it as source context only if accessible; never pretend to have opened it if offline.`);
     for (const file of files) {
-      if (file.type === 'text/plain' || /\.txt$/i.test(file.name)) {
+      const textLikeFile = file.type.startsWith('text/') ||
+        /\.(txt|md|markdown|csv|json|html|htm|xml)$/i.test(file.name);
+      if (textLikeFile && file.size <= 2 * 1024 * 1024) {
         try {
-          const text = await file.text();
-          resourceNotes.push(`Uploaded text file (${file.name}):\n${text.slice(0, 3000)}`);
+          let text = await file.text();
+          if (/\.(html?|xml)$/i.test(file.name) || /html|xml/i.test(file.type)) {
+            text = text.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+              .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&nbsp;|&#160;/gi, ' ')
+              .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+          }
+          resourceNotes.push('Uploaded source (' + file.name + '; ' + file.size + ' bytes):\n' + text.slice(0, 12000));
         } catch {
-          resourceNotes.push(`Uploaded file: ${file.name}. Its contents could not be read by this browser.`);
+          resourceNotes.push('Uploaded file: ' + file.name + '. Its contents could not be read by this browser.');
         }
       } else {
-        resourceNotes.push(`Uploaded file: ${file.name} (${file.type || 'unknown type'}). Its contents are not yet extractable in this version.`);
+        const reason = file.size > 2 * 1024 * 1024
+          ? 'The file exceeds the 2 MB text-import limit.'
+          : 'This file format is not yet extractable in this version.';
+        resourceNotes.push('Uploaded file: ' + file.name + ' (' + (file.type || 'unknown type') + '). ' + reason);
       }
     }
     const languageName = ({ EN: 'English', FR: 'French', ES: 'Spanish' })[language] || 'English';
@@ -1369,6 +1381,14 @@ Do not invent structures or relationships.
             content: [
               'You are HILLION, an expert academic teacher.',
               'Identify the subject and create a logically ordered teaching outline.',
+              ...(learningMode === 'Research Centre' ? [
+                'RESEARCH CENTRE MODE: Treat the learner request as a structured research investigation, not a generic lesson.',
+                'Organise the work around a precise research question, scope, key terms, background, evidence themes, methods or reasoning, limitations, and a balanced synthesis.',
+                'Use only facts supported by reliable learned knowledge or materials explicitly supplied in the prompt. This offline tutor has no live web access.',
+                'Never claim to have opened a supplied URL or read an uploaded file unless its actual contents are present in the prompt.',
+                'Never invent sources, authors, publication dates, page numbers, quotations, URLs, statistics, or citations. Clearly mark missing evidence and recommend what source needs checking.',
+                'Distinguish established findings from interpretation, uncertainty, and open questions.'
+              ] : []),
               'Choose enough sections to cover the entire topic, not an arbitrary fixed number.',
               'For broad or multi-part topics, create as many logically distinct sections as necessary (often 8–14 or more); do not stop at five when important syllabus content remains.',
               'Include a final synthesis/revision section only after all substantive concepts have been taught.',
@@ -1901,6 +1921,13 @@ Do not invent structures or relationships.
             content: [
               'You are HILLION, a patient and intelligent academic teacher.',
               'Teach ONLY the requested section.',
+              ...(learningMode === 'Research Centre' ? [
+                'RESEARCH CENTRE MODE: Write this section as part of a careful research report. Keep claims proportional to the evidence available in the supplied context and established knowledge.',
+                'Do not fabricate citations or pretend to browse. Cite a supplied source only when its identifying details are actually present; otherwise say that a source still needs to be verified.',
+                'Separate evidence, interpretation, assumptions, and unresolved questions. Include counter-evidence or competing explanations where relevant.',
+                'For research methods, explain why the method fits the question, what data it would require, ethical considerations, and its limitations.',
+                'Do not present speculation as a finding or a proposed method as completed research.'
+              ] : []),
               'Explain clearly and progressively, using accurate facts and appropriate examples.',
               'Use simple language first, then introduce academic terminology.',
               'For every formula or equation that is important to understanding the topic, teach the formula rather than merely displaying it.',
