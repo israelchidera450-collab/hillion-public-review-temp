@@ -492,6 +492,9 @@ export default function HomeDashboard({
             </label>
 
             <div className="lesson-input-box">
+              {mode === 'Research Centre' && (
+                <p className="research-source-note">HILLION checks public encyclopedia summaries and academic publication records when online. PDF and Word files can be attached, but their contents are not yet extracted; plain-text, Markdown, CSV, JSON and HTML files are read into the research context.</p>
+              )}
 
               <textarea
                 id="lesson-input"
