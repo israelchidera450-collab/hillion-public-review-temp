@@ -6,9 +6,6 @@ on:
   push:
     branches:
       - hillion-complete-implementation-2026-11-21
-  pull_request:
-    branches:
-      - main
 
 jobs:
   android-debug-compile:
