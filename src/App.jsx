@@ -1462,6 +1462,7 @@ Do not invent structures or relationships.
                 'Use only facts supported by reliable learned knowledge or source records explicitly supplied in the prompt. The app may attach a small number of retrieved public summaries and academic publication metadata; these are not full-paper access.',
                 'Never claim to have opened a learner-supplied URL or read an uploaded file unless its actual contents are present in the prompt. Distinguish encyclopedia summaries from academic publication metadata; metadata is not evidence of a paper\u2019s findings.',
                 'Never invent sources, authors, publication dates, page numbers, quotations, URLs, statistics, or citations. Clearly mark missing evidence and recommend what source needs checking.',
+                'When using a retrieved encyclopedia extract, include a short source note with its exact supplied title and URL. Treat Crossref records only as leads for further reading, never as evidence of a study\u2019s results.',
                 'Distinguish established findings from interpretation, uncertainty, and open questions.'
               ] : []),
               'Choose enough sections to cover the entire topic, not an arbitrary fixed number.',
@@ -1998,7 +1999,7 @@ Do not invent structures or relationships.
               'Teach ONLY the requested section.',
               ...(learningMode === 'Research Centre' ? [
                 'RESEARCH CENTRE MODE: Write this section as part of a careful research report. Keep claims proportional to the evidence available in the supplied context and established knowledge.',
-                'Do not fabricate citations. Cite a retrieved or supplied source only when its exact title and URL are present in the context. A publication record is metadata, not the full paper or proof of its conclusions.',
+                'Do not fabricate citations. Cite a retrieved or supplied source only when its exact title and URL are present in the context. For retrieved encyclopedia extracts, add a concise Sources used note with the exact URL. A publication record is metadata, not the full paper or proof of its conclusions.',
                 'Separate evidence, interpretation, assumptions, and unresolved questions. Include counter-evidence or competing explanations where relevant.',
                 'For research methods, explain why the method fits the question, what data it would require, ethical considerations, and its limitations.',
                 'Do not present speculation as a finding or a proposed method as completed research.'
