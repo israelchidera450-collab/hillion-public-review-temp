@@ -1906,3 +1906,37 @@
 .avatar-mouth-round { transform: scale(0.82, 1.9); }
 .avatar-mouth-wide { transform: scale(1.35, 1.15); }
 .avatar-mouth-speaking { animation: none; transform-origin: center; transition: transform 70ms ease-out; }
+
+
+/* Consistent vector icon language for the classroom top toolbar. */
+.classroom-header .header-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 38px;
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0 8px;
+  border: 1px solid #e6ece6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f5f8f5);
+  box-shadow: 0 2px 5px rgba(35, 59, 42, .045);
+}
+.classroom-header .header-icon-button svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.classroom-header .header-icon-button svg circle { fill: none; }
+.classroom-header .header-view-button { min-width: 56px; }
+.classroom-header .header-view-button small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
