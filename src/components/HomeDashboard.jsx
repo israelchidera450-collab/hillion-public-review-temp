@@ -544,7 +544,7 @@ export default function HomeDashboard({
                     type="file"
                     hidden
                     multiple
-                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    accept="image/*,.pdf,.doc,.docx,.txt,.md,.markdown,.csv,.json,.html,.htm,.xml"
                     onChange={handleFiles}
                   />
 
