@@ -88,6 +88,52 @@ function createMoleculeVisual(title, description, caption) {
     };
   }
 
+
+  } else if (/\\b(oxygen|o2)\\b/.test(source)) {
+    molecule = {
+      formula: 'O₂',
+      name: 'Oxygen',
+      atoms: [
+        { x: 350, y: 420, label: 'O', color: COLORS.paleRed, stroke: COLORS.red, radius: 78 },
+        { x: 650, y: 420, label: 'O', color: COLORS.paleRed, stroke: COLORS.red, radius: 78 }
+      ],
+      bonds: [[0, 1, 2]],
+      shape: 'Diatomic molecule — double covalent bond'
+    };
+  } else if (/\\b(nitrogen|n2)\\b/.test(source)) {
+    molecule = {
+      formula: 'N₂',
+      name: 'Nitrogen',
+      atoms: [
+        { x: 350, y: 420, label: 'N', color: COLORS.palePurple, stroke: COLORS.purple, radius: 78 },
+        { x: 650, y: 420, label: 'N', color: COLORS.palePurple, stroke: COLORS.purple, radius: 78 }
+      ],
+      bonds: [[0, 1, 3]],
+      shape: 'Diatomic molecule — triple covalent bond'
+    };
+  } else if (/\\b(hydrogen molecule|h2)\\b/.test(source)) {
+    molecule = {
+      formula: 'H₂',
+      name: 'Hydrogen',
+      atoms: [
+        { x: 350, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 },
+        { x: 650, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 }
+      ],
+      bonds: [[0, 1, 1]],
+      shape: 'Diatomic molecule — single covalent bond'
+    };
+  } else if (/\\b(hydrogen chloride|hcl)\\b/.test(source)) {
+    molecule = {
+      formula: 'HCl',
+      name: 'Hydrogen chloride',
+      atoms: [
+        { x: 350, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 },
+        { x: 650, y: 420, label: 'Cl', color: COLORS.paleGreen, stroke: COLORS.green, radius: 78 }
+      ],
+      bonds: [[0, 1, 1]],
+      shape: 'Diatomic molecule — polar covalent bond'
+    };
+
   if (!molecule) return null;
 
   const elements = [];
