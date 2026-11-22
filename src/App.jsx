@@ -192,9 +192,7 @@ const [textSize, setTextSize] = useState(22)
       }
     }
     if (mode === 'Research Centre') {
-      setIsClassroomOpen(true);
-      setIsLessonLoading(true);
-      setLessonTranscript('Searching public reference indexes. HILLION will distinguish retrieved summaries from unverified claims...');
+      console.info('[HILLION RESEARCH] Looking up public reference records before opening the classroom.');
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
       const clean = value => String(value || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\s+/g, ' ').trim();
