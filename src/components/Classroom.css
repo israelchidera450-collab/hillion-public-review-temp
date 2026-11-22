@@ -1905,4 +1905,4 @@
 .avatar-mouth-open { transform: scaleY(2.2); }
 .avatar-mouth-round { transform: scale(0.82, 1.9); }
 .avatar-mouth-wide { transform: scale(1.35, 1.15); }
-.avatar-mouth-speaking { transform-origin: center; transition: transform 70ms ease-out; }
+.avatar-mouth-speaking { animation: none; transform-origin: center; transition: transform 70ms ease-out; }
