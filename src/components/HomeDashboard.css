@@ -1209,3 +1209,6 @@
 .model-import-button:disabled, .model-remove-button:disabled { opacity: .55; cursor: wait; }
 .model-setup-message { color: #3e6247; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
 .model-setup-note { color: #827b6b; font-size: 10px; line-height: 1.5; }
+
+
+.research-source-note { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid #6F9B78; border-radius: 8px; background: #F1F6F0; color: #52645A; font-size: 12px; line-height: 1.5; }
