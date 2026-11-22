@@ -878,7 +878,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     // Android/browser engines expose word boundaries inconsistently, not true phoneme timing.
     utterance.onboundary = event => {
       if (event.name && event.name !== 'word') return
-      const spokenWord = utterance.text.slice(event.charIndex || 0).split(/\\s+/)[0] || ''
+      const spokenWord = utterance.text.slice(event.charIndex || 0).split(/\s+/)[0] || ''
       const letters = spokenWord.toLowerCase().replace(/[^a-z]/g, '')
       const first = letters[0] || ''
       const vowelCount = (letters.match(/[aeiouy]/g) || []).length
