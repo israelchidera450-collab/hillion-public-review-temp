@@ -32,7 +32,7 @@ function playMicToggleSound(isStarting) {
   }
 }
 
-function AvatarIcon({ speaking = false }) {
+function AvatarIcon({ speaking = false, mouthShape = 'closed' }) {
   return (
     <svg viewBox="0 0 60 60" aria-hidden="true">
       <circle cx="30" cy="30" r="29" fill="#DDF2D9" />
@@ -44,7 +44,7 @@ function AvatarIcon({ speaking = false }) {
       <ellipse cx="35.8" cy="29" rx="2.6" ry="2.1" fill="#FFF9F1" />
       <circle className={`avatar-pupil ${speaking ? 'avatar-pupil-speaking' : ''}`} cx="25.8" cy="29.1" r="1.35" fill="#241A16" />
       <circle className={`avatar-pupil ${speaking ? 'avatar-pupil-speaking' : ''}`} cx="36.4" cy="29.1" r="1.35" fill="#241A16" />
-      <ellipse className={`avatar-mouth ${speaking ? 'avatar-mouth-speaking' : ''}`}
+      <ellipse className={`avatar-mouth avatar-mouth-${mouthShape} ${speaking ? 'avatar-mouth-speaking' : ''}`}
         cx="30" cy="37" rx="4" ry="1.2" fill="#542D24" />
       <path d="M24 44 L30 51 L36 44" fill="#F5F5F0" />
     </svg>
@@ -764,6 +764,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [isMicActive, setIsMicActive] = useState(false)
   const micActiveRef = useRef(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [avatarMouthShape, setAvatarMouthShape] = useState('closed')
   const [isComposerOpen, setIsComposerOpen] = useState(false)
   const [questionDraft, setQuestionDraft] = useState('')
   const [isAskingQuestion, setIsAskingQuestion] = useState(false)
@@ -870,8 +871,24 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     }
     utterance.rate = 0.92
     utterance.pitch = 1
-    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onstart = () => {
+      setIsSpeaking(true)
+      setAvatarMouthShape('open')
+    }
+    // Android/browser engines expose word boundaries inconsistently, not true phoneme timing.
+    utterance.onboundary = event => {
+      if (event.name && event.name !== 'word') return
+      const spokenWord = utterance.text.slice(event.charIndex || 0).split(/\\s+/)[0] || ''
+      const letters = spokenWord.toLowerCase().replace(/[^a-z]/g, '')
+      const first = letters[0] || ''
+      const vowelCount = (letters.match(/[aeiouy]/g) || []).length
+      if (!letters || /^[bmpfvw]/.test(first)) setAvatarMouthShape('closed')
+      else if (/^[ouw]/.test(first)) setAvatarMouthShape('round')
+      else if (/^[eiy]/.test(first)) setAvatarMouthShape('wide')
+      else setAvatarMouthShape(vowelCount ? 'open' : 'closed')
+    }
     utterance.onend = () => {
+      setAvatarMouthShape('closed')
       speechIndexRef.current += 1
       if (speechIndexRef.current < speechQueueRef.current.length) {
         speakNextChunk()
@@ -891,6 +908,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
       speechQueueRef.current = []
       speechIndexRef.current = 0
       setIsSpeaking(false)
+      setAvatarMouthShape('closed')
     }
     speechRef.current = utterance
     window.speechSynthesis.speak(utterance)
@@ -1692,7 +1710,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
       <footer className="floating-controls" aria-label="Classroom controls">
         <div className="control-cluster control-presence">
           <button ref={avatarControlRef} className={`avatar-control ${isSpeaking ? 'avatar-speaking' : ''}`} aria-label={isSpeaking ? 'Hillion is speaking' : 'Hillion voice indicator'} title={isSpeaking ? 'Hillion is speaking' : 'Hillion tutor'}>
-            <AvatarIcon speaking={isSpeaking} />
+            <AvatarIcon speaking={isSpeaking} mouthShape={avatarMouthShape} />
             <span className="avatar-badge">✦</span>
           </button>
         </div>
