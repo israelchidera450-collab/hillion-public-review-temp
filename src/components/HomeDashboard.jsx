@@ -202,6 +202,10 @@ export default function HomeDashboard({
       name: 'Homework',
       icon: '✍️',
     },
+    {
+      name: 'Research Centre',
+      icon: '🔎',
+    },
   ]
 
   const instructions = {
@@ -221,6 +225,11 @@ export default function HomeDashboard({
       title: 'What homework problem would you like help with?',
       placeholder:
         'You can copy and paste it, or upload a photo or file.',
+    },
+    'Research Centre': {
+      title: 'What would you like to investigate?',
+      placeholder:
+        'Enter a research question, topic, or project brief. Add your notes and source links for evidence-based analysis.',
     },
   }
 
