@@ -422,7 +422,7 @@ const LessonContentRenderer = memo(function LessonContentRenderer({ content, sec
       )}
     </div>
   );
-}
+});
 
 
 
