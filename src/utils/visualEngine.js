@@ -317,11 +317,80 @@ function createStructuredVisual(visual) {
   };
 }
 
+function createFunctionGraphVisual(graphType, title, description, caption) {
+  const elements = [];
+  const xAxis = graphType === 'quadratic' ? 850 : 600;
+  const xMin = graphType === 'quadratic' ? -3 : -5;
+  const xMax = graphType === 'quadratic' ? 3 : 5;
+  const xScale = graphType === 'quadratic' ? 100 : 60;
+  const yScale = graphType === 'quadratic' ? 55 : 50;
+  const mapX = value => 500 + value * xScale;
+  const mapY = value => xAxis - value * yScale;
+  const gridX = graphType === 'quadratic' ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+  const gridY = graphType === 'quadratic' ? [0, 2, 4, 6, 8] : [-4, -2, 0, 2, 4];
+
+  gridX.forEach(value => elements.push(makeShape('line', {
+    x1: mapX(value), y1: 280, x2: mapX(value), y2: 900,
+    stroke: '#E8EEE9', strokeWidth: 1
+  })));
+  gridY.forEach(value => elements.push(makeShape('line', {
+    x1: 150, y1: mapY(value), x2: 850, y2: mapY(value),
+    stroke: '#E8EEE9', strokeWidth: 1
+  })));
+
+  elements.push(
+    makeShape('line', { x1: 150, y1: xAxis, x2: 860, y2: xAxis, stroke: COLORS.ink, strokeWidth: 5 }),
+    makeShape('line', { x1: 500, y1: 900, x2: 500, y2: 260, stroke: COLORS.ink, strokeWidth: 5 }),
+    makeText(875, xAxis + 8, 'x', { fontSize: 28, fontWeight: 700 }),
+    makeText(520, 250, 'y', { fontSize: 28, fontWeight: 700 })
+  );
+
+  gridX.forEach(value => elements.push(makeText(mapX(value), xAxis + 35, String(value), { fontSize: 17 })));
+  gridY.forEach(value => {
+    if (value !== 0) elements.push(makeText(470, mapY(value) + 6, String(value), { fontSize: 17, textAnchor: 'end' }));
+  });
+
+  const points = [];
+  const step = graphType === 'quadratic' ? 0.2 : 0.25;
+  for (let x = xMin; x <= xMax + 0.0001; x += step) {
+    const y = graphType === 'quadratic' ? x * x : x;
+    points.push(mapX(x).toFixed(1) + ',' + mapY(y).toFixed(1));
+  }
+  elements.push(makeShape('polyline', {
+    points: points.join(' '),
+    fill: 'none',
+    stroke: COLORS.green,
+    strokeWidth: 7
+  }));
+  elements.push(
+    makeText(500, 105, graphType === 'quadratic' ? 'Standard quadratic function: y = x²' : 'Standard linear function: y = x', {
+      fontSize: 28, fontWeight: 700
+    }),
+    makeText(500, 970, graphType === 'quadratic'
+      ? 'Parent parabola; other quadratic graphs may be shifted or stretched'
+      : 'Parent line; other linear graphs may have a different slope or intercept', {
+      fontSize: 18
+    })
+  );
+
+  return {
+    renderer: 'svg',
+    kind: 'function-graph',
+    title,
+    description,
+    caption: caption || (graphType === 'quadratic' ? 'The standard parabola y = x².' : 'The standard straight line y = x.'),
+    viewBox: '0 0 1000 1000',
+    elements
+  };
+}
+
 function identifyTemplate(visual) {
   const text = [visual.kind, visual.title, visual.purpose, visual.description]
     .join(' ')
     .toLowerCase();
 
+  if (/\b(parabola|quadratic function graph|graph of y\s*=\s*x\s*(?:\^?2|²))\b/.test(text)) return 'quadratic-graph';
+  if (/\b(linear parent function graph|graph of y\s*=\s*x\b|straight line graph y\s*=\s*x)\b/.test(text)) return 'linear-graph';
   return /\b(water molecule|molecule|molecular structure|chemical bond|benzene|ethene|ethylene|ethyne|acetylene)\b/.test(text)
     ? 'molecule'
     : null;
@@ -348,6 +417,8 @@ export function generateSectionVisuals(visualPlan = []) {
       // by the known molecular formula. Other subjects require AI-authored,
       // validated primitives rather than placeholder diagrams.
       if (kind === 'molecule') return createMoleculeVisual(title, description, caption);
+      if (kind === 'quadratic-graph') return createFunctionGraphVisual('quadratic', title, description, caption);
+      if (kind === 'linear-graph') return createFunctionGraphVisual('linear', title, description, caption);
       return null;
     })
     .filter(Boolean)
