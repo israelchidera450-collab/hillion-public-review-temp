@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef } from 'react'
+import { Fragment, memo, useState, useEffect, useRef } from 'react'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import './Classroom.css'
 import katex from 'katex'
@@ -149,7 +149,7 @@ function renderInlineText(text) {
   });
 }
 
-function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
+const LessonContentRenderer = memo(function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
   const richContentRef = useRef(null);
   const penRef = useRef(null);
   const frameRef = useRef(0);
@@ -472,7 +472,7 @@ function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
   }, [viewportRef, setZoom, minZoom, maxZoom]);
 }
 
-function LessonDiagram({ diagram }) {
+const LessonDiagram = memo(function LessonDiagram({ diagram }) {
   const [diagramZoom, setDiagramZoom] = useState(1);
   const diagramViewportRef = useRef(null);
   usePinchZoom(diagramViewportRef, diagramZoom, setDiagramZoom, 0.75, 2.5);
@@ -647,10 +647,10 @@ function LessonDiagram({ diagram }) {
       </div>
     </section>
   );
-}
+});
 
 
-function SectionSvgIllustration({ visual }) {
+const SectionSvgIllustration = memo(function SectionSvgIllustration({ visual }) {
   const [zoom, setZoom] = useState(1);
   const visualViewportRef = useRef(null);
   usePinchZoom(visualViewportRef, zoom, setZoom, 0.75, 3);
@@ -757,7 +757,7 @@ function SectionSvgIllustration({ visual }) {
       )}
     </section>
   );
-}
+});
 
 function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], clarifications = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
