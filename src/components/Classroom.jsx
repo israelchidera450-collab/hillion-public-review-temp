@@ -248,7 +248,7 @@ const LessonContentRenderer = memo(function LessonContentRenderer({ content, sec
     let candidate = value.trim();
     candidate = candidate.replace(/^(?:formula|equation|working|substitution|final answer)\s*:\s*/i, "");
     if (!candidate || candidate.length > 110 || !candidate.includes("=")) return null;
-    if (/\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are)\b/i.test(candidate)) return null;
+    if (/\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are|dioxide|oxide|chloride|sulphate|sulfate|water|carbon|oxygen|hydrogen)\b/i.test(candidate)) return null;
     const hasMathSyntax = /[+*/×÷^_=<>\\]|\\(?:frac|sqrt|times|cdot|pi|sum|left|right)|[₀-₉⁰-⁹]/.test(candidate);
     const wordCount = (candidate.match(/[A-Za-z]+/g) || []).length;
     if (!hasMathSyntax || wordCount > 9) return null;
