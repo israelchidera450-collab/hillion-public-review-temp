@@ -17,6 +17,7 @@ export default function HomeDashboard({
   const [mode, setMode] = useState('Topic')
   const [teachingStyle, setTeachingStyle] = useState('Normal')
   const [input, setInput] = useState('')
+  const [isStarting, setIsStarting] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [link, setLink] = useState('')
@@ -233,21 +234,26 @@ export default function HomeDashboard({
     },
   }
 
-  function handleStart(event) {
+  async function handleStart(event) {
     event.preventDefault()
 
-    if (!input.trim() && selectedFiles.length === 0 && !link.trim()) {
+    if (isStarting || (!input.trim() && selectedFiles.length === 0 && !link.trim())) {
       return
     }
 
-    onStartLesson?.({
-      mode,
-      topic: input.trim() || 'Please examine my uploaded material.',
-      files: selectedFiles,
-      link: link.trim(),
-      language,
-      teachingStyle,
-    })
+    setIsStarting(true)
+    try {
+      await onStartLesson?.({
+        mode,
+        topic: input.trim() || 'Please examine my uploaded material.',
+        files: selectedFiles,
+        link: link.trim(),
+        language,
+        teachingStyle,
+      })
+    } finally {
+      setIsStarting(false)
+    }
   }
 
   function handleFiles(event) {
@@ -594,11 +600,12 @@ export default function HomeDashboard({
                   disabled={
                     !input.trim() &&
                     selectedFiles.length === 0 &&
-                    !link.trim()
+                    !link.trim() ||
+                    isStarting
                   }
                 >
-                  Start
-                  <span>→</span>
+                  {isStarting ? (mode === 'Research Centre' ? 'Searching…' : 'Preparing…') : 'Start'}
+                  <span>{isStarting ? '…' : '→'}</span>
                 </button>
 
               </div>
