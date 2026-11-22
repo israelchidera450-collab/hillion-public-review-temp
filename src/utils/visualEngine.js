@@ -133,6 +133,7 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 1]],
       shape: 'Diatomic molecule — polar covalent bond'
     };
+  }
 
   if (!molecule) return null;
 
