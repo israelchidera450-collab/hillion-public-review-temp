@@ -96,3 +96,20 @@ test('renders common hydrocarbon structures with correct bond multiplicity', () 
     assert.ok(visual.elements.some(element => element.type === 'text' && element.text.includes(item.formula)));
   }
 });
+
+
+test('renders deterministic parent-function plots with labelled axes', () => {
+  const cases = [
+    { title: 'Graph of y = x', expected: 'Standard linear function: y = x' },
+    { title: 'Parabola graph of y = x^2', expected: 'Standard quadratic function: y = x²' }
+  ];
+  for (const item of cases) {
+    const [visual] = generateSectionVisuals([{ kind: 'mathematics graph', title: item.title }]);
+    assert.ok(visual, item.title + ' should render');
+    assert.equal(visual.kind, 'function-graph');
+    assert.ok(visual.elements.some(element => element.type === 'text' && element.text === 'x'));
+    assert.ok(visual.elements.some(element => element.type === 'text' && element.text === 'y'));
+    assert.ok(visual.elements.some(element => element.type === 'polyline'));
+    assert.ok(visual.elements.some(element => element.type === 'text' && element.text === item.expected));
+  }
+});
