@@ -121,7 +121,7 @@ function renderMath(expression, displayMode = false) {
 }
 
 function renderInlineText(text) {
-  const pattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\([\s\S]+?\\\)|\*\*.*?\*\*|==.*?==|`.*?`|\*[^*\n]+\*)/g;
+  const pattern = /(\\$\\$[\\s\\S]+?\\$\\$|\\$[^$\\n]+\\$|\\\\\\([\\s\\S]+?\\\\\\)|\\\\\\[[\\s\\S]+?\\\\\\]|\\*\\*.*?\\*\\*|==.*?==|`.*?`|\\*[^*\\n]+\\*)/g;
 
   return String(text).split(pattern).map((part, index) => {
     if (part.startsWith("$$") && part.endsWith("$$")) {
@@ -132,6 +132,9 @@ function renderInlineText(text) {
     }
     if (part.startsWith("\\(") && part.endsWith("\\)")) {
       return <span key={index}>{renderMath(part.slice(2, -2))}</span>;
+    }
+    if (part.startsWith("\\[") && part.endsWith("\\]")) {
+      return <span key={index}>{renderMath(part.slice(2, -2), true)}</span>;
     }
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -238,6 +241,20 @@ const LessonContentRenderer = memo(function LessonContentRenderer({ content, sec
   const blocks = [];
   let index = 0;
 
+  // Models sometimes omit TeX delimiters even when they correctly output an
+  // equation. Typeset short, equation-shaped standalone lines as display math
+  // while leaving ordinary prose and chemical formula text untouched.
+  const getStandaloneMath = (value) => {
+    let candidate = value.trim();
+    candidate = candidate.replace(/^(?:formula|equation|working|substitution|final answer)\\s*:\\s*/i, "");
+    if (!candidate || candidate.length > 110 || !candidate.includes("=")) return null;
+    if (/\\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are)\\b/i.test(candidate)) return null;
+    const hasMathSyntax = /[+*/×÷^_=<>\\\\]|\\\\(?:frac|sqrt|times|cdot|pi|sum|sqrt|left|right)|[₀-₉⁰-⁹]/.test(candidate);
+    const wordCount = (candidate.match(/[A-Za-z]+/g) || []).length;
+    if (!hasMathSyntax || wordCount > 9) return null;
+    return candidate;
+  };
+
   const isBlockStart = (value) => {
     const line = value.trim();
     return (
@@ -258,7 +275,18 @@ const LessonContentRenderer = memo(function LessonContentRenderer({ content, sec
       continue;
     }
 
-    if (line.startsWith("$$") || line.startsWith("\\[")) {
+    const unwrappedEquation = getStandaloneMath(line);
+    if (unwrappedEquation) {
+      blocks.push(
+        <div className="lesson-display-math-wrapper" key={"auto-math-" + index}>
+          {renderMath(unwrappedEquation, true)}
+        </div>
+      );
+      index++;
+      continue;
+    }
+
+    if (line.startsWith("$") || line.startsWith("\\[")) {
       const closing = line.startsWith("$$") ? "$$" : "\\]";
       let expression = line.slice(2);
       const closingPosition = expression.indexOf(closing);
