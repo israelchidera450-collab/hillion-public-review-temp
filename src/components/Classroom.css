@@ -1898,3 +1898,11 @@
     animation: none;
   }
 }
+
+
+/* Subtle word-boundary viseme hints; exact phoneme timing is not consistently exposed by Android TTS. */
+.avatar-mouth-closed { transform: scaleY(0.7); }
+.avatar-mouth-open { transform: scaleY(2.2); }
+.avatar-mouth-round { transform: scale(0.82, 1.9); }
+.avatar-mouth-wide { transform: scale(1.35, 1.15); }
+.avatar-mouth-speaking { transform-origin: center; transition: transform 70ms ease-out; }
