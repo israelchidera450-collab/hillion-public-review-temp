@@ -1,6 +1,11 @@
 # A compatible update must be signed with the exact certificate already on the user's device.
 name: HILLION Android compile verification
 
+# Keep only the newest Android build for this branch; native AI setup is expensive.
+concurrency:
+  group: hillion-android-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
