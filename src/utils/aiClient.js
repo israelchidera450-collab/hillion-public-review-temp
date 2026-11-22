@@ -106,7 +106,7 @@ async function requestAndroidAI(payload, signal) {
       accumulated += event.token
       if (controller) {
         const chunk = { choices: [{ delta: { content: event.token }, finish_reason: null }] }
-        try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\\n\\n`)) } catch { }
+        try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)) } catch { }
       }
     })
     removeListeners.push(() => tokenHandle.remove())
