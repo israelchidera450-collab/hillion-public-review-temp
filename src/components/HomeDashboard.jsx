@@ -229,7 +229,7 @@ export default function HomeDashboard({
     'Research Centre': {
       title: 'What would you like to investigate?',
       placeholder:
-        'Enter a research question, topic, or project brief. Add your notes and source links for evidence-based analysis.',
+        'Enter a research question, topic, or project brief. Add your notes; pasted links are reference leads, not pages HILLION has opened.',
     },
   }
 
@@ -493,7 +493,7 @@ export default function HomeDashboard({
 
             <div className="lesson-input-box">
               {mode === 'Research Centre' && (
-                <p className="research-source-note">HILLION checks public encyclopedia summaries and academic publication records when online. PDF and Word files can be attached, but their contents are not yet extracted; plain-text, Markdown, CSV, JSON and HTML files are read into the research context.</p>
+                <p className="research-source-note">HILLION checks public encyclopedia summaries and academic publication records when online. Pasted links are not fetched. PDF and Word files can be attached, but their contents are not yet extracted; plain-text, Markdown, CSV, JSON and HTML files are read into the research context.</p>
               )}
 
               <textarea
