@@ -30,3 +30,62 @@ test('reports IndexedDB as optional when the browser does not provide it', async
   const result = await storage.restoreStorageFromIndexedDB();
   assert.deepEqual(result, { restored: [], available: false });
 });
+
+test('durable mirror preserves save-clear-save ordering during recovery', async () => {
+  const records = new Map();
+  const database = {
+    objectStoreNames: { contains: () => true },
+    transaction() {
+      let write = null;
+      const transaction = {
+        objectStore() {
+          return {
+            put(record) { write = () => records.set(record.key, record); },
+            delete(key) { write = () => records.delete(key); },
+            get(key) {
+              const request = {};
+              queueMicrotask(() => {
+                request.result = records.get(key) || null;
+                request.onsuccess?.();
+              });
+              return request;
+            }
+          };
+        }
+      };
+      queueMicrotask(() => {
+        write?.();
+        transaction.oncomplete?.();
+      });
+      return transaction;
+    }
+  };
+  globalThis.indexedDB = {
+    open() {
+      const request = {};
+      queueMicrotask(() => {
+        request.result = database;
+        request.onsuccess?.();
+      });
+      return request;
+    }
+  };
+
+  try {
+    store.clear();
+    assert.equal(storage.saveActiveLesson({ id: 'old-active' }), true);
+    assert.equal(storage.clearActiveLesson(), true);
+    assert.equal(storage.saveActiveLesson({ id: 'new-active' }), true);
+
+    await storage.restoreStorageFromIndexedDB();
+    store.delete('hillion_active_lesson');
+    store.delete('hillion_active_lesson__backup_v1');
+    store.delete('hillion_active_lesson_cleared_v1');
+
+    const recovered = await storage.restoreStorageFromIndexedDB();
+    assert.deepEqual(recovered.restored, ['hillion_active_lesson']);
+    assert.equal(storage.getActiveLesson().id, 'new-active');
+  } finally {
+    delete globalThis.indexedDB;
+  }
+});

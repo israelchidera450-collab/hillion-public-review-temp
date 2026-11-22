@@ -1,0 +1,173 @@
+# A compatible update must be signed with the exact certificate already on the user's device.
+name: HILLION Android compile verification
+
+permissions:
+  contents: write
+
+# Keep only the newest Android build for this branch; native AI setup is expensive.
+concurrency:
+  group: hillion-android-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - hillion-complete-implementation-2026-11-21
+
+jobs:
+  android-debug-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glslc
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.31.6"
+      - name: Bootstrap pinned on-device AI engine
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: bash scripts/setup-native-ai.sh
+      - name: Create temporary CI-only debug signing key
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Restore and verify the installed app's original signing key
+        id: compat_signing
+        if: github.event_name != 'pull_request'
+        env:
+          HILLION_COMPAT_DEBUG_KEYSTORE_BASE64: ${{ secrets.HILLION_COMPAT_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$HILLION_COMPAT_DEBUG_KEYSTORE_BASE64" ]; then
+            echo "::error::HILLION_COMPAT_DEBUG_KEYSTORE_BASE64 is missing from this repository's Actions secrets. No installable APK will be produced."
+            exit 1
+          fi
+          mkdir -p "$HOME/.android"
+          printf '%s' "$HILLION_COMPAT_DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          test -s "$HOME/.android/debug.keystore"
+          CERT="$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey 2>/dev/null | awk -F': ' '/SHA256:/{print toupper($2); exit}')"
+          EXPECTED="62:6D:43:FD:4D:92:B8:0D:A1:DF:CA:EA:2D:B7:69:7C:CE:2E:D8:2E:6D:86:32:B6:D7:3A:FD:63:5A:41:90:EA"
+          if [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::The supplied signing key does not match the installed app certificate. Refusing to build an update."
+            exit 1
+          fi
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          echo "Installed-app signing certificate verified."
+
+      - name: Configure Android SDK
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+      - name: Install web dependencies
+        run: npm ci
+      - name: Build web assets
+        run: npm run build
+      - name: Synchronise Capacitor
+        run: npx cap sync android
+
+      - name: Compile CI-only debug APK for pull-request validation
+        if: github.event_name == 'pull_request'
+        working-directory: android
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --max-workers=2
+      - name: Verify CI-only debug APK
+        if: github.event_name == 'pull_request'
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | head -n 1
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "$APK"
+      - name: Archive CI-only debug APK (not for installation over an existing app)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HILLION-CI-DEBUG-APK-NOT-FOR-UPGRADE
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Compile release APK with the verified installed-app signing key
+        if: github.event_name != 'pull_request' && steps.compat_signing.outputs.available == 'true'
+        working-directory: android
+        env:
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          HILLION_RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/hillion-compatible.keystore
+          HILLION_RELEASE_STORE_PASSWORD: android
+          HILLION_RELEASE_KEY_ALIAS: androiddebugkey
+          HILLION_RELEASE_KEY_PASSWORD: android
+        run: |
+          cp "$HOME/.android/debug.keystore" "$HILLION_RELEASE_KEYSTORE_PATH"
+          ./gradlew assembleRelease --no-daemon --max-workers=2
+
+      - name: Verify compatible release APK package, version, and exact signing certificate
+        if: github.event_name != 'pull_request' && steps.compat_signing.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          BADGING="$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | head -n 1)"
+          echo "$BADGING"
+          case "$BADGING" in
+            "package: name='com.hillion.aitutorstandalone' versionCode='2' versionName='1.1'"*) ;;
+            *) echo "::error::APK package or version does not match the intended upgrade."; exit 1 ;;
+          esac
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$APK"
+          CERT="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | awk -F': ' '/Signer #1 certificate SHA-256 digest:/{print toupper($2); exit}')"
+          EXPECTED="626D43FD4D92B80DA1DFCAEA2DB7697CCE2ED82E6D8632B6D73AFD635A4190EA"
+          if [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::APK signing certificate mismatch. Refusing to publish this update."
+            exit 1
+          fi
+          echo "Package, version, and installed-app signing certificate all verified."
+
+      - name: Archive verified compatible update APK
+        if: github.event_name != 'pull_request' && steps.compat_signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HILLION-COMPATIBLE-UPDATE-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Compress verified APK for lower-bandwidth download
+        if: github.event_name != 'pull_request' && steps.compat_signing.outputs.available == 'true'
+        run: |
+          cd android/app/build/outputs/apk/release
+          zip -9 HILLION-Android-Update.zip app-release.apk
+          ls -lh HILLION-Android-Update.zip app-release.apk
+
+      - name: Publish verified APK as a direct public download
+        if: github.event_name != 'pull_request' && steps.compat_signing.outputs.available == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hillion-v1.1-${{ github.sha }}
+          name: HILLION AI Tutor 1.1
+          body: |
+            Verified compatible Android update for HILLION AI Tutor.
+            Package: com.hillion.aitutorstandalone
+            Version: 1.1 (versionCode 2)
+            This APK is published only after package, version, signature, and apksigner verification.
+          files: |
+            android/app/build/outputs/apk/release/HILLION-Android-Update.zip
+            android/app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
+          make_latest: false

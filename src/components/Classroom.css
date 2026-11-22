@@ -796,7 +796,7 @@
 .lesson-rich-content {
   width: 100%;
   color: #37372f;
-  font-family: "Segoe Print", "Comic Sans MS", cursive, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 15px;
   line-height: 1.9;
   overflow-wrap: anywhere;
@@ -805,7 +805,7 @@
 .lesson-inline-heading {
   margin: 22px 0 10px;
   color: #253954;
-  font-family: "Segoe Print", "Comic Sans MS", cursive, sans-serif;
+  font-family: ui-rounded, "Avenir Next", "Segoe UI", system-ui, sans-serif;
   font-size: 18px;
   font-weight: 800;
   line-height: 1.5;
@@ -1399,9 +1399,9 @@
   background: rgba(255,255,255,0.98);
 }
 .avatar-control {
-  flex-basis: 50px;
-  width: 50px;
-  height: 50px;
+  flex-basis: 56px;
+  width: 56px;
+  height: 56px;
 }
 .avatar-control svg { width: 100%; height: 100%; display: block; }
 .avatar-mouth-speaking {
@@ -1418,20 +1418,27 @@
 }
 
 
-/* Streaming cursor: anchored after the live text instead of a free-running pen. */
-.hillion-writing-pen { display: none !important; }
-.hillion-writing-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1.05em;
-  margin-left: 4px;
-  vertical-align: -0.16em;
-  border-radius: 2px;
-  background: #238b57;
-  animation: hillion-cursor-blink 1s steps(2, start) infinite;
+/* The writing pen is anchored to the live text's final rendered glyph. */
+.lesson-rich-content { position: relative; }
+.hillion-writing-pen {
+  position: absolute;
+  z-index: 3;
+  width: 25px;
+  height: 25px;
+  pointer-events: none;
+  transform: rotate(-8deg);
+  transform-origin: 5px 23px;
+  filter: drop-shadow(0 2px 2px rgba(35, 45, 38, .2));
+  animation: hillion-pen-writing .34s ease-in-out infinite alternate;
+  transition: left 70ms linear, top 70ms linear, opacity 80ms ease;
 }
-@keyframes hillion-cursor-blink {
-  to { visibility: hidden; }
+.hillion-writing-pen svg { display:block; width:100%; height:100%; }
+@keyframes hillion-pen-writing {
+  from { transform: rotate(-11deg) translateY(0); }
+  to { transform: rotate(-4deg) translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hillion-writing-pen { animation: none; transition: none; }
 }
 
 /* Clear, touch-friendly classroom control states. */
@@ -1514,15 +1521,16 @@
 .avatar-pupil {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 280ms ease;
+  transform: translate(var(--avatar-gaze-x, 0px), var(--avatar-gaze-y, 0px));
+  transition: transform 100ms ease-out;
 }
 .avatar-pupil-speaking {
   animation: hillion-gaze 3.2s ease-in-out infinite;
 }
 @keyframes hillion-gaze {
-  0%, 22%, 100% { transform: translateX(0); }
-  38%, 58% { transform: translateX(1.15px); }
-  76% { transform: translateX(-.8px); }
+  0%, 22%, 100% { transform: translate(var(--avatar-gaze-x, 0px), var(--avatar-gaze-y, 0px)); }
+  38%, 58% { transform: translate(calc(var(--avatar-gaze-x, 0px) + 1.15px), var(--avatar-gaze-y, 0px)); }
+  76% { transform: translate(calc(var(--avatar-gaze-x, 0px) - .8px), var(--avatar-gaze-y, 0px)); }
 }
 @media (max-width: 370px) {
   .floating-controls { gap: 5px; }
@@ -1537,4 +1545,398 @@
 .lesson-visual-viewport {
   touch-action: pan-x pan-y;
   overscroll-behavior: contain;
+}
+
+
+.selected-passage-context {
+  margin: 0 0 12px; padding: 11px 13px;
+  border: 1px solid #e7d58c; border-left: 4px solid #e3c34f;
+  border-radius: 12px; background: #fff9dc;
+}
+.selected-passage-context strong { display:block; color:#63521d; font-size:12px; margin-bottom:5px; }
+.selected-passage-context p { margin:0 0 7px; color:#49422e; font-size:13px; line-height:1.5; max-height:90px; overflow:auto; }
+.selected-passage-context button { border:0; background:transparent; color:#67531c; text-decoration:underline; padding:2px 0; font-size:12px; }
+.lesson-section-clarification { margin:18px 0; padding:15px 17px; border-left:4px solid #e4c44f; border-radius:12px; background:#fff9df; }
+.lesson-section-clarification h2 { color:#6d5718; }
+
+.lesson-section-clarification h3 { margin: 0 0 10px; color: #6d5718; }
+.lesson-section-clarification blockquote {
+  margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid #e3c34f;
+  background: rgba(255,255,255,.62); color: #63521d; border-radius: 5px;
+}
+
+/* Context-aware handwritten lesson typography and emphasis hierarchy. */
+.lesson-section > h2,
+.lesson-rich-content h3,
+.lesson-rich-content h4,
+.lesson-rich-content .lesson-inline-heading {
+  font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
+  letter-spacing: -.025em;
+}
+.lesson-rich-content .lesson-paragraph,
+.lesson-rich-content .lesson-bullet-list,
+.lesson-rich-content .lesson-numbered-list {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1.04em;
+}
+.lesson-rich-content .lesson-definition-text {
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  font-weight: 600;
+}
+.lesson-rich-content .lesson-display-math-wrapper,
+.lesson-rich-content .lesson-inline-math {
+  font-family: "KaTeX_Main", "Cambria Math", "Times New Roman", serif;
+}
+.lesson-rich-content strong {
+  text-decoration: underline;
+  text-decoration-color: rgba(45, 117, 79, .28);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.lesson-rich-content mark {
+  background: linear-gradient(transparent 17%, #fff0a8 17%, #fff0a8 88%, transparent 88%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Illustration modes: dimensional classroom drawings without pretending to be CAD. */
+.lesson-visual-style-isometric-3d .lesson-visual-viewport {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255,255,255,.98), rgba(246,244,231,.92) 72%);
+  border: 1px solid #e9e2cd;
+  border-radius: 16px;
+}
+.lesson-visual-style-isometric-3d .lesson-visual-svg {
+  filter: drop-shadow(0 7px 5px rgba(43, 55, 47, .12));
+}
+.lesson-visual-style-isometric-3d .lesson-visual-svg polygon {
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+.lesson-visual-style-technical-illustration .lesson-visual-viewport {
+  background: repeating-linear-gradient(0deg, #fbfcf8 0, #fbfcf8 24px, #edf1e9 25px);
+  border: 1px solid #dce5dc;
+  border-radius: 12px;
+}
+.lesson-visual-style-hand-drawn .lesson-visual-svg {
+  filter: drop-shadow(.35px .45px 0 rgba(38,59,50,.18));
+}
+
+
+/* HILLION typography pass: readable first, with deliberate visual hierarchy.
+   Avoids relying on device-specific handwriting fonts that may not exist. */
+.lesson-rich-content {
+  color: #303a35;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(15px, 1rem, 18px);
+  line-height: 1.78;
+  font-weight: 430;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+.lesson-rich-content .lesson-paragraph,
+.lesson-rich-content .lesson-bullet-list,
+.lesson-rich-content .lesson-numbered-list {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1em;
+  line-height: 1.82;
+  letter-spacing: .005em;
+}
+.lesson-section > h2,
+.lesson-rich-content h3,
+.lesson-rich-content h4 {
+  font-family: ui-rounded, "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-weight: 760;
+  letter-spacing: -.025em;
+  line-height: 1.32;
+}
+.lesson-rich-content .lesson-definition-text {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.02em;
+  line-height: 1.75;
+  font-weight: 600;
+}
+.lesson-rich-content em {
+  font-family: "Iowan Old Style", Georgia, serif;
+  letter-spacing: .005em;
+}
+.lesson-rich-content strong {
+  font-weight: 760;
+  text-decoration: underline;
+  text-decoration-color: rgba(45, 117, 79, .34);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.lesson-rich-content mark {
+  padding: .04em .18em;
+  border-radius: .22em;
+  background: linear-gradient(transparent 16%, #ffe66b 16%, #ffe66b 91%, transparent 91%);
+  color: #342d17;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.lesson-rich-content .lesson-display-math-wrapper {
+  border: 1px solid #ebe6d8;
+  background: #fbfaf5;
+}
+.lesson-rich-content blockquote {
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-style: italic;
+  line-height: 1.7;
+}
+@media (max-width: 420px) {
+  .lesson-rich-content { font-size: 15px; line-height: 1.75; }
+  .lesson-rich-content .lesson-paragraph,
+  .lesson-rich-content .lesson-bullet-list,
+  .lesson-rich-content .lesson-numbered-list { line-height: 1.78; }
+}
+
+.voice-preference-control {
+  display: block;
+  margin: 12px 0 5px;
+  color: #526356;
+  font-size: 12px;
+  font-weight: 700;
+}
+.voice-preference-select {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 8px 11px;
+  border: 1px solid #dce5dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #263b32;
+  font: inherit;
+}
+
+
+/* The pen's position is driven by the final rendered glyph in the lesson.
+   Remove decorative bouncing so it does not appear to dance independently. */
+.hillion-writing-pen {
+  animation: none !important;
+  transform: rotate(-8deg);
+  transition: left 55ms linear, top 55ms linear, opacity 80ms ease;
+}
+.hillion-writing-pen::after {
+  display: none;
+}
+
+
+/* HILLION CLASSROOM POLISH — touch targets, avatar expression and typography */
+.control-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1.5vw, 10px);
+  min-width: 0;
+}
+
+.control-presence { flex: 0 0 auto; }
+.control-learning { flex: 1 1 auto; }
+.control-input { flex: 0 0 auto; }
+
+.avatar-control {
+  flex-basis: 54px;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  background: linear-gradient(145deg, #e8f7e5, #c9e9d0);
+  box-shadow: 0 3px 12px rgba(34, 115, 66, .16), 0 0 0 2px #fff;
+}
+
+.avatar-control svg { overflow: visible; }
+
+.avatar-pupil {
+  transform: translate(var(--avatar-gaze-x, 0px), var(--avatar-gaze-y, 0px));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 100ms ease-out;
+}
+
+.avatar-mouth {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: ry 100ms ease, transform 100ms ease;
+}
+
+.avatar-mouth-speaking {
+  animation: hillion-avatar-speech 180ms ease-in-out infinite alternate;
+}
+
+@keyframes hillion-avatar-speech {
+  from { transform: scaleY(.65); }
+  to { transform: scaleY(1.65); }
+}
+
+.avatar-control:focus-visible,
+.round-control:focus-visible,
+.microphone-control:focus-visible,
+.classroom-header button:focus-visible {
+  outline: 3px solid rgba(47, 139, 83, .55);
+  outline-offset: 3px;
+}
+
+.voice-preference-control {
+  margin: 6px 7px 0;
+  color: #52665a;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .02em;
+}
+
+.voice-preference-select {
+  width: calc(100% - 14px);
+  min-height: 44px;
+  margin: 0 7px 7px;
+  padding: 9px 12px;
+  border: 1px solid #cbdccf;
+  border-radius: 11px;
+  background: #f5faf5;
+  color: #263b32;
+  font: inherit;
+  font-size: 14px;
+}
+
+.classroom-header {
+  background: rgba(255, 255, 255, .98);
+  border-bottom-color: #e4e9e2;
+  box-shadow: 0 2px 12px rgba(34, 54, 39, .045);
+}
+
+.classroom-header button {
+  min-width: 36px;
+  min-height: 40px;
+  border-radius: 11px;
+  color: #35483b;
+  font-weight: 650;
+}
+
+.classroom-header button:active {
+  background: #edf5ed;
+  transform: translateY(1px);
+}
+
+.classroom-header span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #315c40;
+  letter-spacing: .11em;
+}
+
+.lesson-rich-content {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #303b34;
+  letter-spacing: .002em;
+}
+
+.lesson-inline-heading,
+.lesson-section h2 {
+  font-family: "Avenir Next", ui-rounded, Inter, system-ui, sans-serif;
+  letter-spacing: -.018em;
+}
+
+.lesson-definition-text {
+  background: linear-gradient(90deg, #edf6ed, #f5f8ee);
+  border-left-color: #78a77d;
+}
+
+.lesson-rich-content mark {
+  background: linear-gradient(transparent 12%, #fff0a2 12%, #fff0a2 91%, transparent 91%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.lesson-rich-content em {
+  color: #526b58;
+}
+
+@media (max-width: 420px) {
+  .floating-controls {
+    min-height: 76px;
+    height: auto;
+    gap: 5px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .avatar-control {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .control-cluster { gap: 5px; }
+  .control-learning { justify-content: space-evenly; }
+  .control-input { gap: 6px; }
+
+  .round-control {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 9px;
+  }
+
+  .microphone-control {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .classroom-header { padding-left: 7px; padding-right: 7px; }
+  .classroom-header button { min-width: 30px; min-height: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pupil,
+  .avatar-mouth,
+  .avatar-mouth-speaking {
+    transition: none;
+    animation: none;
+  }
+}
+
+
+/* Subtle word-boundary viseme hints; exact phoneme timing is not consistently exposed by Android TTS. */
+.avatar-mouth-closed { transform: scaleY(0.7); }
+.avatar-mouth-open { transform: scaleY(2.2); }
+.avatar-mouth-round { transform: scale(0.82, 1.9); }
+.avatar-mouth-wide { transform: scale(1.35, 1.15); }
+.avatar-mouth-speaking { animation: none; transform-origin: center; transition: transform 70ms ease-out; }
+
+
+/* Consistent vector icon language for the classroom top toolbar. */
+.classroom-header .header-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 38px;
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0 8px;
+  border: 1px solid #e6ece6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f5f8f5);
+  box-shadow: 0 2px 5px rgba(35, 59, 42, .045);
+}
+.classroom-header .header-icon-button svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.classroom-header .header-icon-button svg circle { fill: none; }
+.classroom-header .header-view-button { min-width: 56px; }
+.classroom-header .header-view-button small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
 }

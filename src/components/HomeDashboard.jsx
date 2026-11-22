@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { getLessons, updateLesson, deleteLesson } from '../utils/lessonStorage'
+import { createRecoveryBackup, restoreRecoveryBackup } from '../utils/recoveryBackup'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 
 const HillionModelManager = registerPlugin('HillionModelManager')
@@ -8,7 +9,6 @@ const HillionInference = registerPlugin('HillionInference')
 export default function HomeDashboard({
   onStartLesson,
   onOpenHistory,
-  recentBoards = [],
   recoveryLesson = null,
   onResumeLesson,
   onStartFresh,
@@ -17,6 +17,7 @@ export default function HomeDashboard({
   const [mode, setMode] = useState('Topic')
   const [teachingStyle, setTeachingStyle] = useState('Normal')
   const [input, setInput] = useState('')
+  const [isStarting, setIsStarting] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [link, setLink] = useState('')
@@ -27,22 +28,23 @@ export default function HomeDashboard({
   const [modelStatus, setModelStatus] = useState({ ready: false, sizeMB: 0 })
   const [modelBusy, setModelBusy] = useState(false)
   const [modelMessage, setModelMessage] = useState('')
-  const [historyLessons, setHistoryLessons] = useState(recentBoards)
+  const [, setHistoryRevision] = useState(0)
+  const historyLessons = getLessons()
   const [managementLesson, setManagementLesson] = useState(null)
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryMessage, setRecoveryMessage] = useState('')
+  const [recoveryCode, setRecoveryCode] = useState('')
+  const [recoveryBackupFile, setRecoveryBackupFile] = useState(null)
 
   const fileInputRef = useRef(null)
   const longPressTimerRef = useRef(null)
   const longPressTriggeredRef = useRef(false)
 
-  useEffect(() => {
-    setHistoryLessons(recentBoards)
-  }, [recentBoards])
-
   function refreshHistory() {
-    setHistoryLessons(getLessons())
+    setHistoryRevision(revision => revision + 1)
   }
 
   function stopLongPress() {
@@ -102,6 +104,46 @@ export default function HomeDashboard({
 
   const renameTargetRef = useRef(null)
 
+
+  async function exportRecoveryBackup() {
+    setRecoveryBusy(true)
+    setRecoveryMessage('Preparing encrypted backup…')
+    try {
+      const result = await createRecoveryBackup()
+      const blob = new Blob([JSON.stringify(result.backup, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'HILLION-encrypted-recovery-backup.json'
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+      setRecoveryCode(result.recoveryCode)
+      setRecoveryMessage('Encrypted backup exported. Keep the recovery code and downloaded file in separate safe places.')
+    } catch (error) {
+      setRecoveryMessage(error?.message || 'Could not create a recovery backup.')
+    } finally {
+      setRecoveryBusy(false)
+    }
+  }
+
+  async function importRecoveryBackup() {
+    if (!recoveryBackupFile || !recoveryCode.trim()) {
+      setRecoveryMessage('Choose your HILLION backup file and enter its recovery code.')
+      return
+    }
+    setRecoveryBusy(true)
+    setRecoveryMessage('Verifying and restoring backup…')
+    try {
+      const parsed = JSON.parse(await recoveryBackupFile.text())
+      const result = await restoreRecoveryBackup({ backup: parsed, recoveryCode: recoveryCode.trim() })
+      setRecoveryMessage(`Restored ${result.restoredKeys.length} HILLION data records. Restart HILLION to reload the restored workspace.`)
+    } catch (error) {
+      setRecoveryMessage(error?.message || 'Could not restore this backup.')
+    } finally {
+      setRecoveryBusy(false)
+    }
+  }
+
   async function refreshModelStatus() {
     if (!Capacitor.isNativePlatform()) return
     try {
@@ -148,10 +190,6 @@ export default function HomeDashboard({
     }
   }
 
-  useEffect(() => {
-    if (settingsOpen) refreshModelStatus()
-  }, [settingsOpen])
-
   const modes = [
     {
       name: 'Topic',
@@ -164,6 +202,10 @@ export default function HomeDashboard({
     {
       name: 'Homework',
       icon: '✍️',
+    },
+    {
+      name: 'Research Centre',
+      icon: '🔎',
     },
   ]
 
@@ -185,23 +227,33 @@ export default function HomeDashboard({
       placeholder:
         'You can copy and paste it, or upload a photo or file.',
     },
+    'Research Centre': {
+      title: 'What would you like to investigate?',
+      placeholder:
+        'Enter a research question, topic, or project brief. Add your notes; pasted links are reference leads, not pages HILLION has opened.',
+    },
   }
 
-  function handleStart(event) {
+  async function handleStart(event) {
     event.preventDefault()
 
-    if (!input.trim() && selectedFiles.length === 0 && !link.trim()) {
+    if (isStarting || (!input.trim() && selectedFiles.length === 0 && !link.trim())) {
       return
     }
 
-    onStartLesson?.({
-      mode,
-      topic: input.trim() || 'Please examine my uploaded material.',
-      files: selectedFiles,
-      link: link.trim(),
-      language,
-      teachingStyle,
-    })
+    setIsStarting(true)
+    try {
+      await onStartLesson?.({
+        mode,
+        topic: input.trim() || 'Please examine my uploaded material.',
+        files: selectedFiles,
+        link: link.trim(),
+        language,
+        teachingStyle,
+      })
+    } finally {
+      setIsStarting(false)
+    }
   }
 
   function handleFiles(event) {
@@ -322,7 +374,7 @@ export default function HomeDashboard({
 
         <div className="sidebar-bottom">
 
-          <button className="sidebar-link" onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}>
+          <button className="sidebar-link" onClick={() => { refreshModelStatus(); setSettingsOpen(true); setMenuOpen(false) }}>
             <span>⚙</span>
             Settings
           </button>
@@ -446,6 +498,9 @@ export default function HomeDashboard({
             </label>
 
             <div className="lesson-input-box">
+              {mode === 'Research Centre' && (
+                <p className="research-source-note">HILLION checks public encyclopedia summaries and academic publication records when online. Pasted links are not fetched. PDF and Word files can be attached, but their contents are not yet extracted; plain-text, Markdown, CSV, JSON and HTML files are read into the research context.</p>
+              )}
 
               <textarea
                 id="lesson-input"
@@ -498,7 +553,7 @@ export default function HomeDashboard({
                     type="file"
                     hidden
                     multiple
-                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    accept="image/*,.pdf,.doc,.docx,.txt,.md,.markdown,.csv,.json,.html,.htm,.xml"
                     onChange={handleFiles}
                   />
 
@@ -545,11 +600,12 @@ export default function HomeDashboard({
                   disabled={
                     !input.trim() &&
                     selectedFiles.length === 0 &&
-                    !link.trim()
+                    !link.trim() ||
+                    isStarting
                   }
                 >
-                  Start
-                  <span>→</span>
+                  {isStarting ? (mode === 'Research Centre' ? 'Searching…' : 'Preparing…') : 'Start'}
+                  <span>{isStarting ? '…' : '→'}</span>
                 </button>
 
               </div>
@@ -662,7 +718,19 @@ export default function HomeDashboard({
               {modelMessage && <small className="model-setup-message" role="status">{modelMessage}</small>}
               <small className="model-setup-note">The first lesson after importing may take longer while HILLION loads the model into memory. After that, inference runs locally without Termux or a separate server.</small>
             </div>
-            <p className="modal-empty">More tutor and voice preferences will be added as those controls become available.</p>
+            <div className="model-setup-panel recovery-backup-panel">
+              <div className="model-setup-heading"><strong>HILLION portable recovery</strong><span>ENCRYPTED</span></div>
+              <p>Export your lessons and app records into an encrypted file. Keep the recovery code and file safe. The code alone cannot retrieve a backup that was never uploaded.</p>
+              <button type="button" className="model-import-button" onClick={exportRecoveryBackup} disabled={recoveryBusy}>{recoveryBusy ? 'Please wait…' : 'Create encrypted backup'}</button>
+              {recoveryCode && <div className="recovery-code-display"><small>YOUR RECOVERY CODE — SAVE IT SECURELY</small><code>{recoveryCode}</code></div>}
+              <label className="settings-label" htmlFor="recovery-code-input">Recovery code</label>
+              <input id="recovery-code-input" className="recovery-code-input" value={recoveryCode} onChange={event => setRecoveryCode(event.target.value.toUpperCase())} placeholder="H5LL10N-…" autoCapitalize="characters" />
+              <label className="settings-label" htmlFor="recovery-file-input">Encrypted backup file</label>
+              <input id="recovery-file-input" type="file" accept="application/json,.json" onChange={event => setRecoveryBackupFile(event.target.files?.[0] || null)} />
+              <button type="button" className="model-import-button" onClick={importRecoveryBackup} disabled={recoveryBusy || !recoveryBackupFile || !recoveryCode.trim()}>Restore HILLION backup</button>
+              {recoveryMessage && <small className="model-setup-message" role="status">{recoveryMessage}</small>}
+            </div>
+            <p className="modal-empty">This portable backup currently covers HILLION localStorage records. The GGUF model file and cloud-only recovery are not included.</p>
             <button type="button" className="modal-done" onClick={() => setSettingsOpen(false)}>Done</button>
           </section>
         </div>

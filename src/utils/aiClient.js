@@ -21,6 +21,7 @@ export async function checkAIAvailability({ signal } = {}) {
 
   if (isAndroidNative()) {
     const status = await HillionInference.getStatus()
+    if (signal?.aborted) throw asAbortError()
     if (!status.modelReady) {
       throw new Error('No on-device AI model is installed. Open Settings and import your Qwen GGUF model first.')
     }
@@ -40,12 +41,16 @@ async function requestAndroidAI(payload, signal) {
   if (signal?.aborted) throw asAbortError()
 
   const status = await HillionInference.getStatus()
+  if (signal?.aborted) throw asAbortError()
   if (!status.modelReady) {
     throw new Error('No on-device AI model is installed. Open Settings and import your Qwen GGUF model first.')
   }
   if (!status.loaded) {
     // The model is loaded once into native memory and reused for later requests.
     await HillionInference.loadModel()
+    // Model loading can take several seconds on a phone. Honour Stop before
+    // registering a new native generation request once loading has completed.
+    if (signal?.aborted) throw asAbortError()
   }
 
   const requestId = makeRequestId()
@@ -98,30 +103,37 @@ async function requestAndroidAI(payload, signal) {
 
   const stream = streaming ? new ReadableStream({ start(value) { controller = value } }) : null
 
-  const tokenHandle = await HillionInference.addListener('generationToken', event => {
-    if (event.requestId !== requestId || settled || typeof event.token !== 'string') return
-    accumulated += event.token
-    if (controller) {
-      const chunk = { choices: [{ delta: { content: event.token }, finish_reason: null }] }
-      try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)) } catch { }
-    }
-  })
-  removeListeners.push(() => tokenHandle.remove())
+  // Listener setup is a partial-failure boundary: if any later registration
+  // fails, remove every listener already attached before returning the error.
+  try {
+    const tokenHandle = await HillionInference.addListener('generationToken', event => {
+      if (event.requestId !== requestId || settled || typeof event.token !== 'string') return
+      accumulated += event.token
+      if (controller) {
+        const chunk = { choices: [{ delta: { content: event.token }, finish_reason: null }] }
+        try { controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)) } catch { }
+      }
+    })
+    removeListeners.push(() => tokenHandle.remove())
 
-  const completeHandle = await HillionInference.addListener('generationComplete', event => {
-    if (event.requestId === requestId) void finish()
-  })
-  removeListeners.push(() => completeHandle.remove())
+    const completeHandle = await HillionInference.addListener('generationComplete', event => {
+      if (event.requestId === requestId) void finish()
+    })
+    removeListeners.push(() => completeHandle.remove())
 
-  const errorHandle = await HillionInference.addListener('generationError', event => {
-    if (event.requestId === requestId) void finish(new Error(event.error || 'The on-device AI engine failed.'))
-  })
-  removeListeners.push(() => errorHandle.remove())
+    const errorHandle = await HillionInference.addListener('generationError', event => {
+      if (event.requestId === requestId) void finish(new Error(event.error || 'The on-device AI engine failed.'))
+    })
+    removeListeners.push(() => errorHandle.remove())
 
-  const cancelledHandle = await HillionInference.addListener('generationCancelled', event => {
-    if (event.requestId === requestId) void finish(asAbortError())
-  })
-  removeListeners.push(() => cancelledHandle.remove())
+    const cancelledHandle = await HillionInference.addListener('generationCancelled', event => {
+      if (event.requestId === requestId) void finish(asAbortError())
+    })
+    removeListeners.push(() => cancelledHandle.remove())
+  } catch (error) {
+    await cleanup()
+    throw error
+  }
 
   if (settled || signal?.aborted) {
     await cleanup()

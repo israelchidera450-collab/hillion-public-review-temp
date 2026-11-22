@@ -3,7 +3,7 @@ import './App.css'
 import Classroom from './components/Classroom'
 import ClassroomErrorBoundary from './components/ClassroomErrorBoundary'
 import HomeDashboard from './components/HomeDashboard'
-import { getActiveLesson, saveActiveLesson, saveLesson, getLessons, clearActiveLesson, deleteLesson, restoreStorageFromIndexedDB } from "./utils/lessonStorage"
+import { getActiveLesson, saveActiveLesson, saveLesson, getLessons, clearActiveLesson, restoreStorageFromIndexedDB } from "./utils/lessonStorage"
 import { generateSectionVisuals } from './utils/visualEngine'
 import { checkAIAvailability, requestAI } from './utils/aiClient'
 import './components/HomeDashboard.css'
@@ -47,7 +47,7 @@ useEffect(() => {
 
   return () => clearTimeout(timer)
 }, [])
-  const [subject, setSubject] = useState('Biology')
+  const [subject] = useState('Biology')
   const [lessonTopic, setLessonTopic] = useState('')
 const [isClassroomOpen, setIsClassroomOpen] = useState(false)
   const [isPreparingLesson, setIsPreparingLesson] = useState(false)
@@ -61,9 +61,6 @@ const [isClassroomOpen, setIsClassroomOpen] = useState(false)
   const [lessonSubject, setLessonSubject] = useState('')
   const [lessonDiagram, setLessonDiagram] = useState(null)
 const [isLessonLoading, setIsLessonLoading] = useState(false)
-const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
-const [isPlaying, setIsPlaying] = useState(false)
-const [isMicActive, setIsMicActive] = useState(false)
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState(loadChatHistorySafely)
   const [isLoading, setIsLoading] = useState(false)
@@ -169,17 +166,102 @@ const [textSize, setTextSize] = useState(22)
 
   async function handleDashboardStart({ mode, topic, files = [], link = '', language = 'EN', teachingStyle = 'Normal' }) {
     const resourceNotes = [];
-    if (link) resourceNotes.push(`Resource link supplied by the learner: ${link}. Use it as source context only if accessible; never pretend to have opened it if offline.`);
+    if (link) resourceNotes.push(`Learner-supplied reference link (not fetched by HILLION): ${link}. Treat it as a lead only; do not quote or cite its contents unless the learner supplies the relevant text separately.`);
     for (const file of files) {
-      if (file.type === 'text/plain' || /\.txt$/i.test(file.name)) {
+      const textLikeFile = file.type.startsWith('text/') ||
+        /\.(txt|md|markdown|csv|json|html|htm|xml)$/i.test(file.name);
+      if (textLikeFile && file.size <= 2 * 1024 * 1024) {
         try {
-          const text = await file.text();
-          resourceNotes.push(`Uploaded text file (${file.name}):\n${text.slice(0, 3000)}`);
+          let text = await file.text();
+          if (/\.(html?|xml)$/i.test(file.name) || /html|xml/i.test(file.type)) {
+            text = text.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+              .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&nbsp;|&#160;/gi, ' ')
+              .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>');
+          }
+          resourceNotes.push('Uploaded source (' + file.name + '; ' + file.size + ' bytes):\n' + text.slice(0, 12000));
         } catch {
-          resourceNotes.push(`Uploaded file: ${file.name}. Its contents could not be read by this browser.`);
+          resourceNotes.push('Uploaded file: ' + file.name + '. Its contents could not be read by this browser.');
         }
       } else {
-        resourceNotes.push(`Uploaded file: ${file.name} (${file.type || 'unknown type'}). Its contents are not yet extractable in this version.`);
+        const reason = file.size > 2 * 1024 * 1024
+          ? 'The file exceeds the 2 MB text-import limit.'
+          : 'This file format is not yet extractable in this version.';
+        resourceNotes.push('Uploaded file: ' + file.name + ' (' + (file.type || 'unknown type') + '). ' + reason);
+      }
+    }
+    if (mode === 'Research Centre') {
+      console.info('[HILLION RESEARCH] Looking up public reference records before opening the classroom.');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const clean = value => String(value || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\s+/g, ' ').trim();
+      const researchRecords = [];
+      try {
+        const requests = await Promise.allSettled([
+          (async () => {
+            const params = new URLSearchParams({
+              action: 'query', list: 'search', srsearch: topic.split('\\n')[0].slice(0, 180),
+              srlimit: '4', format: 'json', origin: '*'
+            });
+            const searchResponse = await fetch('https://en.wikipedia.org/w/api.php?' + params, { signal: controller.signal });
+            if (!searchResponse.ok) throw new Error('Reference index unavailable');
+            const searchData = await searchResponse.json();
+            const titles = (searchData.query?.search || []).map(item => item.title).filter(Boolean).slice(0, 4);
+            if (!titles.length) return [];
+            const detailParams = new URLSearchParams({
+              action: 'query', prop: 'extracts|info', exintro: '1', explaintext: '1',
+              inprop: 'url', titles: titles.join('|'), format: 'json', formatversion: '2', origin: '*'
+            });
+            const detailResponse = await fetch('https://en.wikipedia.org/w/api.php?' + detailParams, { signal: controller.signal });
+            if (!detailResponse.ok) throw new Error('Reference summaries unavailable');
+            const detailData = await detailResponse.json();
+            return (detailData.query?.pages || []).filter(page => page.extract).map(page => ({
+              kind: 'encyclopedia summary', title: page.title, url: page.fullurl || ('https://en.wikipedia.org/wiki/' + encodeURIComponent(page.title.replace(/ /g, '_'))),
+              text: clean(page.extract).slice(0, 1800)
+            }));
+          })(),
+          (async () => {
+            const params = new URLSearchParams({
+              'query.bibliographic': topic.split('\\n')[0].slice(0, 180),
+              rows: '4', select: 'DOI,title,author,published,container-title,URL,type'
+            });
+            const response = await fetch('https://api.crossref.org/works?' + params, { signal: controller.signal });
+            if (!response.ok) throw new Error('Academic index unavailable');
+            const data = await response.json();
+            return (data.message?.items || []).map(item => ({
+              kind: 'academic publication metadata (not full text)',
+              title: clean(item.title?.[0] || 'Untitled publication'),
+              url: item.URL || (item.DOI ? 'https://doi.org/' + item.DOI : ''),
+              text: [
+                'Authors: ' + (item.author || []).slice(0, 5).map(person => [person.given, person.family].filter(Boolean).join(' ')).join(', '),
+                'Published: ' + (item.published?.['date-parts']?.[0]?.join('-') || 'date not supplied'),
+                'Journal/publisher: ' + (item['container-title']?.[0] || 'not supplied'),
+                'DOI: ' + (item.DOI || 'not supplied')
+              ].join('; ')
+            })).filter(item => item.title && item.url);
+          })()
+        ]);
+        for (const result of requests) {
+          if (result.status === 'fulfilled') researchRecords.push(...result.value);
+        }
+      } catch (error) {
+        console.warn('[HILLION RESEARCH] Public source lookup did not complete:', error?.message || error);
+      } finally {
+        clearTimeout(timeout);
+      }
+      const uniqueRecords = researchRecords.filter((record, index, all) =>
+        record.url && all.findIndex(other => other.url === record.url) === index
+      ).slice(0, 7);
+      if (uniqueRecords.length) {
+        resourceNotes.push(
+          'PUBLIC RESEARCH SOURCES RETRIEVED BY HILLION (retrieval date: ' + new Date().toISOString().slice(0, 10) + '):\\n' +
+          uniqueRecords.map((record, index) =>
+            (index + 1) + '. [' + record.kind + '] ' + record.title + '\\nURL: ' + record.url + '\\n' + record.text
+          ).join('\\n\\n')
+        );
+      } else {
+        resourceNotes.push('LIVE RESEARCH LOOKUP: No public sources could be retrieved during this session. Continue using supplied materials and established knowledge, clearly label claims needing verification, and do not invent citations.');
       }
     }
     const languageName = ({ EN: 'English', FR: 'French', ES: 'Spanish' })[language] || 'English';
@@ -190,14 +272,6 @@ const [textSize, setTextSize] = useState(22)
     setIsClassroomOpen(true);
     startLesson(enrichedTopic, mode, null, teachingStyle);
   }
-
-  const subjects = [
-    { name: 'Biology', icon: '🧬', color: 'green' },
-    { name: 'Chemistry', icon: '⚗️', color: 'orange' },
-    { name: 'Physics', icon: '⚡', color: 'blue' },
-    { name: 'Mathematics', icon: '📐', color: 'purple' },
-    { name: 'English', icon: '📚', color: 'pink' }
-  ]
 
   function getPosition(event) {
     const svg = svgRef.current
@@ -880,7 +954,7 @@ Do not invent structures or relationships.
       { role: 'assistant', content: aiReply }
     ])
 
-  } catch (error) {
+  } catch {
     setMessages(previous => [
       ...previous,
       {
@@ -1006,7 +1080,6 @@ Do not invent structures or relationships.
     }
 
     if (overlap) {
-      const normalizedIncoming = incoming.toLowerCase().replace(/\s+/g, ' ');
       let count = 0;
       let cut = 0;
 
@@ -1151,8 +1224,8 @@ Do not invent structures or relationships.
     setLessonDiagram(resumeData?.diagram || null);
     const generate = async (messages, maxTokens, onChunk, requireComplete = false, continuationDepth = 0) => {
       const requestController = new AbortController();
-      let timedOut = false;
-      let reply = '';
+      const timeoutState = { timedOut: false };
+      const replyState = { text: '' };
 
       const abortFromLesson = () => {
         console.warn('[HILLION DIAGNOSTIC] Request aborted by lesson controller:', {
@@ -1169,7 +1242,7 @@ Do not invent structures or relationships.
       controller.signal.addEventListener("abort", abortFromLesson, { once: true });
 
       const timeoutId = setTimeout(() => {
-        timedOut = true;
+        timeoutState.timedOut = true;
         console.warn('[HILLION DIAGNOSTIC] AI request timeout fired:', {
           time: new Date().toISOString(),
           timeoutMilliseconds: 1800000
@@ -1200,7 +1273,7 @@ Do not invent structures or relationships.
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-        let finishReason = null;
+        const finishState = { reason: null };
 
         const processLine = (line) => {
           const trimmed = line.trim();
@@ -1220,11 +1293,11 @@ Do not invent structures or relationships.
           }
 
           const choice = event.choices?.[0];
-          if (choice?.finish_reason) finishReason = choice.finish_reason;
+          if (choice?.finish_reason) finishState.reason = choice.finish_reason;
           const piece = choice?.delta?.content;
 
           if (typeof piece === 'string' && piece.length > 0) {
-            reply += piece;
+            replyState.text += piece;
 
             if (typeof onChunk === 'function') {
               onChunk(piece);
@@ -1253,11 +1326,11 @@ Do not invent structures or relationships.
           processLine(buffer);
         }
 
-        if (!reply.trim()) {
+        if (!replyState.text.trim()) {
           throw new Error("The AI returned an empty response.");
         }
 
-        if (requireComplete && finishReason === 'length') {
+        if (requireComplete && finishState.reason === 'length') {
           if (continuationDepth >= 3) {
             throw new Error(
               'Hillion reached its automatic continuation limit. Your saved draft is safe. Press Play to continue.'
@@ -1269,7 +1342,7 @@ Do not invent structures or relationships.
           const continuation = await generate(
             [
               ...messages,
-              { role: 'assistant', content: reply },
+              { role: 'assistant', content: replyState.text },
               {
                 role: 'user',
                 content: 'Continue directly from your final words. Finish the incomplete sentence and continue the same explanation. Do not repeat any previous text or restart the section.'
@@ -1281,17 +1354,17 @@ Do not invent structures or relationships.
             continuationDepth + 1
           );
 
-          return reply.trim() + continuation;
+          return replyState.text.trim() + continuation;
         }
 
-        return reply.trim();
+        return replyState.text.trim();
       } catch (error) {
         // Preserve intentional pauses as pauses, not network failures.
         if (controller.signal.aborted) {
           throw new DOMException("Lesson interrupted", "AbortError");
         }
 
-        if (timedOut) {
+        if (timeoutState.timedOut) {
           throw new Error("The AI request exceeded its 30-minute safety limit. Your saved draft has been preserved. Please resume the lesson.");
         }
 
@@ -1342,7 +1415,7 @@ Do not invent structures or relationships.
 
               try {
                 return JSON.parse(candidate);
-              } catch (error) {
+              } catch {
                 break;
               }
             }
@@ -1381,26 +1454,41 @@ Do not invent structures or relationships.
             content: [
               'You are HILLION, an expert academic teacher.',
               'Identify the subject and create a logically ordered teaching outline.',
-              'Choose enough sections to cover the topic properly.',
+              ...(learningMode === 'Research Centre' ? [
+                'RESEARCH CENTRE MODE: Treat the learner request as a structured research investigation, not a generic lesson.',
+                'Organise the work around a precise research question, scope, key terms, background, evidence themes, methods or reasoning, limitations, and a balanced synthesis.',
+                'Use only facts supported by reliable learned knowledge or source records explicitly supplied in the prompt. The app may attach a small number of retrieved public summaries and academic publication metadata; these are not full-paper access.',
+                'Never claim to have opened a learner-supplied URL or read an uploaded file unless its actual contents are present in the prompt. Distinguish encyclopedia summaries from academic publication metadata; metadata is not evidence of a paper\u2019s findings.',
+                'Never invent sources, authors, publication dates, page numbers, quotations, URLs, statistics, or citations. Clearly mark missing evidence and recommend what source needs checking.',
+                'When using a retrieved encyclopedia extract, include a short source note with its exact supplied title and URL. Treat Crossref records only as leads for further reading, never as evidence of a study\u2019s results.',
+                'Distinguish established findings from interpretation, uncertainty, and open questions.'
+              ] : []),
+              'Choose enough sections to cover the entire topic, not an arbitrary fixed number.',
+              'For broad or multi-part topics, create as many logically distinct sections as necessary (often 8–14 or more); do not stop at five when important syllabus content remains.',
+              'Include a final synthesis/revision section only after all substantive concepts have been taught.',
               'Progress from foundations to advanced understanding.',
               'Include essential concepts, terminology, processes and applications.',
               'Do not write lesson explanations.',
               'For each section, decide whether a visual would materially improve understanding. Do not force visuals into every section.',
               'When useful, add visualPlan as an array with at most one item per section. Use a subject-appropriate visual kind and describe only components and relationships you can state confidently.',
-              'For a visualPlan item, also provide elements: an array of 3–30 simple SVG primitives on a 1000 by 1000 canvas. Allowed types: line, rect, circle, ellipse, text, polyline, polygon. Give numeric coordinates from 0 to 1000, short accurate text labels, and hex stroke/fill colours. Use line elements for connectors, not decorative arrows unless direction is scientifically meaningful. Keep labels readable and avoid unsupported anatomy, scale, or causal claims.',
+              'For a visualPlan item, also provide elements: an array of 3–50 simple SVG primitives on a 1000 by 1000 canvas. Allowed types: line, rect, circle, ellipse, text, polyline, polygon. Give numeric coordinates from 0 to 1000, short accurate text labels, and hex stroke/fill colours. Use line elements for connectors, not decorative arrows unless direction is scientifically meaningful. Keep labels readable and avoid unsupported anatomy, scale, or causal claims.',
+              'Choose renderStyle per visual: isometric-3d for useful 3D/isometric views of molecules, cells, organs, landforms, machines, solids or apparatus; technical-illustration for engineering and apparatus; hand-drawn for classroom sketches; flat for maps, graphs and simple process diagrams. 3D views need consistent projection, visible front/top/side faces, coherent depth, occlusion and light/shadow facets. They are explanatory illustrations, not measured simulations.',
+              'For 3D/isometric drawings, construct visible faces from coordinated polygons with shared vertices, consistent axes and coherent depth layers. Add callout lines and labels outside the object. Never invent hidden structures or dimensions.',
+              'For graphs, label both axes and state whether the curve is schematic or quantitatively defined. For anatomy and apparatus, use only structures you can confidently position. If you cannot create a valid subject-specific diagram, omit elements and leave the visualPlan empty rather than inventing a generic drawing.',
+              'Prefer subject-specific diagrams, labelled anatomy, molecular structures, isometric 3D illustrations, apparatus layouts, graphs, maps, timelines, geometry constructions, technical drawings or process illustrations as appropriate to the subject.',
               'For graphs, label both axes and state whether the curve is schematic or quantitatively defined. For anatomy and apparatus, use only structures you can confidently position. If you cannot create a valid subject-specific diagram, omit elements and leave the visualPlan empty rather than inventing a generic drawing.',
               'Prefer diagrams, labelled anatomy, molecular structures, apparatus layouts, graphs, maps, timelines, geometry constructions or process illustrations as appropriate to the subject.',
               'If an accurate specific diagram cannot be described confidently, leave visualPlan empty. Never invent labels, measurements, equations, causal arrows or scientific structures.',
               'Return ONLY valid JSON:',
-              '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
-              'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {\"type\":\"text\",\"x\":500,\"y\":100,\"text\":\"Label\"}.'
+              '{"title":"Lesson title","subject":"Subject","sections":[{"heading":"Section heading","goal":"Specific learning objective","type":"explanation","visualPlan":[{"kind":"appropriate_visual_type","renderStyle":"flat","title":"Specific visual title","purpose":"What the visual should help explain","description":"Accurate components and relationships to show","caption":"Short caption","elements":[{"type":"text","x":500,"y":100,"text":"Accurate label"},{"type":"line","x1":200,"y1":200,"x2":800,"y2":200,"stroke":"#263B32"},{"type":"rect","x":350,"y":300,"width":300,"height":180,"stroke":"#6F9B78","fill":"#DDEBDD"}]}]}',
+              'Use accurate academic terminology. Keep visual descriptions concise and factually precise. Example element: {"type":"text","x":500,"y":100,"text":"Label"}.'
             ].join('\n')
           },
           {
             role: 'user',
             content: 'Learning mode: ' + learningMode + '. Topic: ' + topic
           }
-        ], 400);
+        ], 1400);
 
         try {
           plan = parseJSON(outlineReply);
@@ -1503,6 +1591,8 @@ Do not invent structures or relationships.
               .map(visual => ({
 
                 kind: String(visual.kind || 'educational_illustration').slice(0, 60),
+
+                renderStyle: ['isometric-3d', 'technical-illustration', 'hand-drawn', 'flat'].includes(visual.renderStyle) ? visual.renderStyle : 'flat',
 
                 title: visual.title.slice(0, 120),
 
@@ -1749,9 +1839,6 @@ Do not invent structures or relationships.
         ([, pattern]) => pattern.test(topic)
       );
 
-      const shouldCreateTopicDiagram =
-        topicRequestsDiagram || Boolean(matchedDiagramTopic);
-
       if (!diagramForLesson && matchedDiagramTopic) {
         diagramForLesson = createDiagramTemplate(
           matchedDiagramTopic[0],
@@ -1908,6 +1995,13 @@ Do not invent structures or relationships.
             content: [
               'You are HILLION, a patient and intelligent academic teacher.',
               'Teach ONLY the requested section.',
+              ...(learningMode === 'Research Centre' ? [
+                'RESEARCH CENTRE MODE: Write this section as part of a careful research report. Keep claims proportional to the evidence available in the supplied context and established knowledge.',
+                'Do not fabricate citations. Cite a retrieved or supplied source only when its exact title and URL are present in the context. For retrieved encyclopedia extracts, add a concise Sources used note with the exact URL. A publication record is metadata, not the full paper or proof of its conclusions.',
+                'Separate evidence, interpretation, assumptions, and unresolved questions. Include counter-evidence or competing explanations where relevant.',
+                'For research methods, explain why the method fits the question, what data it would require, ethical considerations, and its limitations.',
+                'Do not present speculation as a finding or a proposed method as completed research.'
+              ] : []),
               'Explain clearly and progressively, using accurate facts and appropriate examples.',
               'Use simple language first, then introduce academic terminology.',
               'For every formula or equation that is important to understanding the topic, teach the formula rather than merely displaying it.',
@@ -1969,7 +2063,7 @@ Do not invent structures or relationships.
               ] : [])
             ].join('\n')
           }
-        ], 600, (chunk) => {
+        ], 1100, (chunk) => {
           liveDraftRef.current = {
             sectionIndex: index,
             heading: plannedSection.heading || 'Section ' + (index + 1),
@@ -2171,7 +2265,21 @@ Do not invent structures or relationships.
     }
   }
 
-  async function askClassroomQuestion(question) {
+  async function askClassroomQuestion(question, selectedPassage = '') {
+    const shouldResumeAfterClarification = Boolean(
+      isLessonLoading ||
+      ['paused', 'in-progress'].includes(getActiveLesson()?.status)
+    );
+    if (isLessonLoading) {
+      interruptLesson();
+      const stopDeadline = Date.now() + 15000;
+      while (lessonAbortRef.current && Date.now() < stopDeadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      if (lessonAbortRef.current) {
+        throw new Error('The lecture is still stopping. Your saved progress is safe; please try the clarification again.');
+      }
+    }
     const cleanQuestion = String(question || '').trim();
     if (!cleanQuestion) return;
 
@@ -2191,10 +2299,10 @@ Do not invent structures or relationships.
           messages: [
             {
               role: 'system',
-              content: `You are HILLION, the academic tutor continuing an existing ${lessonSubject || 'academic'} lesson on "${lessonTopic}". Answer the learner's follow-up in context. Be scientifically accurate, explain unfamiliar terms, and use clear structured teaching. If a formula is needed, define every symbol and unit and show a worked example. Do not restart the whole lesson. Return only the answer that should be added to the lesson board.`
+              content: `You are HILLION, the academic tutor continuing an existing ${lessonSubject || 'academic'} lesson on "${lessonTopic}". The learner has interrupted to clarify a point. Explain only the requested point, not the whole lesson. If a selected passage is supplied, unpack its meaning sentence by sentence, define unfamiliar terms, explain every formula symbol and unit, and use a short example where useful. Format all standalone equations with \\[ and \\], and inline mathematics with \\( and \\); use real subscripts, superscripts and fractions rather than raw code or programming notation. Never put formulas in backticks or code fences. Do not repeat unrelated material or restart the lesson. Return only the clarification to place beside the relevant lesson section.`
             },
             ...conversationContext,
-            { role: 'user', content: `Existing lesson context:\n${recentContext}\n\nLearner's follow-up question: ${cleanQuestion}` }
+            { role: 'user', content: `Existing lesson context:\n${recentContext}\n\nExact selected passage: ${selectedPassage ? '“' + selectedPassage + '”' : 'No passage selected; infer the point from the question.'}\n\nLearner's follow-up question: ${cleanQuestion}` }
           ],
           temperature: 0.3,
           repeat_penalty: 1.15,
@@ -2210,15 +2318,30 @@ Do not invent structures or relationships.
       const answer = data?.choices?.[0]?.message?.content?.trim();
       if (!answer) throw new Error('The AI server returned an empty answer.');
 
-      const heading = `Follow-up: ${cleanQuestion.slice(0, 90)}`;
-      const followUpSection = {
-        type: 'explanation',
+      const heading = selectedPassage
+        ? 'Clarification: ' + selectedPassage.slice(0, 72)
+        : `Follow-up: ${cleanQuestion.slice(0, 90)}`;
+      const matchedSectionIndex = selectedPassage
+        ? lessonSections.findIndex(section => String(section.content || '').includes(selectedPassage))
+        : -1;
+      const matchedLiveDraft = Boolean(
+        selectedPassage &&
+        String(liveDraftRef.current?.content || activeLesson?.liveDraft?.content || '').includes(selectedPassage)
+      );
+      const previousClarifications = Array.isArray(activeLesson?.clarifications)
+        ? activeLesson.clarifications
+        : [];
+      const clarification = {
+        id: `clarification-${Date.now()}`,
         heading,
         content: answer,
-        visualPlan: [],
-        visuals: generateSectionVisuals([], { heading, topic: lessonTopic, subject: lessonSubject, goal: cleanQuestion })
+        clarifiedPassage: selectedPassage || '',
+        question: cleanQuestion,
+        afterSectionIndex: matchedSectionIndex >= 0 ? matchedSectionIndex : null,
+        targetLiveDraft: matchedLiveDraft,
+        createdAt: new Date().toISOString()
       };
-      const updatedSections = [...lessonSections, followUpSection];
+      const updatedClarifications = [...previousClarifications, clarification];
       const updatedConversation = [
         ...(lessonConversation || []),
         { role: 'user', content: cleanQuestion },
@@ -2230,19 +2353,38 @@ Do not invent structures or relationships.
         title: lessonTitle || lessonTopic || 'HILLION lesson',
         topic: lessonTopic,
         subject: lessonSubject,
-        sections: updatedSections,
+        sections: lessonSections,
+        clarifications: updatedClarifications,
         conversation: updatedConversation,
-        transcript: 'Follow-up added to this lesson.',
+        resumeCheckpoint: {
+          sectionCount: lessonSections.length,
+          liveDraft: liveDraftRef.current ? {
+            ...liveDraftRef.current,
+            heading: liveDraftRef.current.heading || '',
+            content: liveDraftRef.current.content || ''
+          } : activeLesson?.liveDraft || null,
+          clarifiedPassage: selectedPassage || '',
+          clarificationId: clarification.id,
+          updatedAt: new Date().toISOString()
+        },
+        transcript: 'Clarification added beside the relevant section. Resume to continue the lecture.',
         status: activeLesson?.status || 'paused',
         createdAt: activeLesson?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      setLessonSections(updatedSections);
       setLessonConversation(updatedConversation);
-      setLessonTranscript('Hillion added your follow-up to the lesson board.');
+      setLessonTranscript('Clarification complete. Hillion is resuming from the saved lecture position.');
       saveLesson(updatedLesson);
       saveActiveLesson(updatedLesson);
+      if (shouldResumeAfterClarification && Array.isArray(updatedLesson.plannedSections) && updatedLesson.plannedSections.length) {
+        await startLesson(
+          updatedLesson.topic || lessonTopic,
+          updatedLesson.learningMode || 'Topic',
+          { ...updatedLesson, status: 'paused' },
+          updatedLesson.teachingStyle || 'Normal'
+        );
+      }
       return answer;
     } catch (error) {
       if (error?.name === 'AbortError') {
@@ -2308,6 +2450,7 @@ if (isClassroomOpen) {
       transcript={lessonTranscript}
       conversation={lessonConversation}
       sections={lessonSections}
+      clarifications={getActiveLesson()?.clarifications || []}
       liveSectionHeading={liveSectionHeading}
       liveSectionContent={liveSectionContent}
       loading={isLessonLoading}

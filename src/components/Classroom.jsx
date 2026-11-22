@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, memo, useState, useEffect, useRef } from 'react'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import './Classroom.css'
 import katex from 'katex'
@@ -32,7 +32,7 @@ function playMicToggleSound(isStarting) {
   }
 }
 
-function AvatarIcon({ speaking = false }) {
+function AvatarIcon({ speaking = false, mouthShape = 'closed' }) {
   return (
     <svg viewBox="0 0 60 60" aria-hidden="true">
       <circle cx="30" cy="30" r="29" fill="#DDF2D9" />
@@ -44,7 +44,7 @@ function AvatarIcon({ speaking = false }) {
       <ellipse cx="35.8" cy="29" rx="2.6" ry="2.1" fill="#FFF9F1" />
       <circle className={`avatar-pupil ${speaking ? 'avatar-pupil-speaking' : ''}`} cx="25.8" cy="29.1" r="1.35" fill="#241A16" />
       <circle className={`avatar-pupil ${speaking ? 'avatar-pupil-speaking' : ''}`} cx="36.4" cy="29.1" r="1.35" fill="#241A16" />
-      <ellipse className={`avatar-mouth ${speaking ? 'avatar-mouth-speaking' : ''}`}
+      <ellipse className={`avatar-mouth avatar-mouth-${mouthShape} ${speaking ? 'avatar-mouth-speaking' : ''}`}
         cx="30" cy="37" rx="4" ry="1.2" fill="#542D24" />
       <path d="M24 44 L30 51 L36 44" fill="#F5F5F0" />
     </svg>
@@ -58,15 +58,6 @@ function SpeechIcon() {
         fill="white" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
       <path d="M10 19 H20 L24 22 V10 Q24 8 22 8 H21"
         fill="white" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 28 28" aria-hidden="true">
-      <rect x="7" y="5" width="5" height="18" rx="1" fill="currentColor" />
-      <rect x="16" y="5" width="5" height="18" rx="1" fill="currentColor" />
     </svg>
   )
 }
@@ -130,7 +121,7 @@ function renderMath(expression, displayMode = false) {
 }
 
 function renderInlineText(text) {
-  const pattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\([\s\S]+?\\\)|\*\*.*?\*\*|==.*?==|`.*?`|\*[^*\n]+\*)/g;
+  const pattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]|\*\*.*?\*\*|==.*?==|\`.*?\`|\*[^*\n]+\*)/g;
 
   return String(text).split(pattern).map((part, index) => {
     if (part.startsWith("$$") && part.endsWith("$$")) {
@@ -141,6 +132,9 @@ function renderInlineText(text) {
     }
     if (part.startsWith("\\(") && part.endsWith("\\)")) {
       return <span key={index}>{renderMath(part.slice(2, -2))}</span>;
+    }
+    if (part.startsWith("\\[") && part.endsWith("\\]")) {
+      return <span key={index}>{renderMath(part.slice(2, -2), true)}</span>;
     }
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -158,7 +152,69 @@ function renderInlineText(text) {
   });
 }
 
-function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
+const LessonContentRenderer = memo(function LessonContentRenderer({ content, sectionHeading = "", isStreaming = false }) {
+  const richContentRef = useRef(null);
+  const penRef = useRef(null);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    if (!isStreaming) return;
+    const root = richContentRef.current;
+    const pen = penRef.current;
+    if (!root || !pen) return;
+
+    const placePen = () => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let lastVisibleRect = null;
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        const value = node.nodeValue || '';
+        // Ignore whitespace-only tails, hidden accessibility copies and
+        // non-rendered math annotations so the tip stays on the last inked glyph.
+        if (!value.trim()) continue;
+        const parent = node.parentElement;
+        if (parent?.closest('[aria-hidden="true"], script, style, .katex-mathml, .visually-hidden')) continue;
+        let offset = value.length - 1;
+        while (offset >= 0 && /\\s/.test(value[offset])) offset--;
+        if (offset < 0) continue;
+        const range = document.createRange();
+        range.setStart(node, offset);
+        range.setEnd(node, offset + 1);
+        const rects = range.getClientRects();
+        const rect = rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) lastVisibleRect = rect;
+      }
+      if (!lastVisibleRect) {
+        pen.style.opacity = '0';
+        return;
+      }
+      const rect = lastVisibleRect;
+      const rootRect = root.getBoundingClientRect();
+      // Position the pen tip at the actual final rendered glyph, including
+      // wrapped lines, lists, inline emphasis and KaTeX output.
+      pen.style.left = `${rect.right - rootRect.left + root.scrollLeft - 3}px`;
+      pen.style.top = `${rect.bottom - rootRect.top + root.scrollTop - 15}px`;
+      pen.style.opacity = '1';
+    };
+
+    const schedule = () => {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = requestAnimationFrame(placePen);
+    };
+    schedule();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(root);
+    const board = root.closest('.classroom-board');
+    board?.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      observer.disconnect();
+      board?.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [content, sectionHeading, isStreaming]);
+
   function cleanStreamingText(value) {
     if (!isStreaming) return value;
     return value.split("\n").map(line => {
@@ -185,6 +241,20 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
   const blocks = [];
   let index = 0;
 
+  // Models sometimes omit TeX delimiters even when they correctly output an
+  // equation. Typeset short, equation-shaped standalone lines as display math
+  // while leaving ordinary prose and chemical formula text untouched.
+  const getStandaloneMath = (value) => {
+    let candidate = value.trim();
+    candidate = candidate.replace(/^(?:formula|equation|working|substitution|final answer)\s*:\s*/i, "");
+    if (!candidate || candidate.length > 110 || !candidate.includes("=")) return null;
+    if (/\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are|dioxide|oxide|chloride|sulphate|sulfate|water|carbon|oxygen|hydrogen)\b/i.test(candidate)) return null;
+    const hasMathSyntax = /[+*/×÷^_=<>\\]|\\(?:frac|sqrt|times|cdot|pi|sum|left|right)|[₀-₉⁰-⁹]/.test(candidate);
+    const wordCount = (candidate.match(/[A-Za-z]+/g) || []).length;
+    if (!hasMathSyntax || wordCount > 9) return null;
+    return candidate;
+  };
+
   const isBlockStart = (value) => {
     const line = value.trim();
     return (
@@ -205,7 +275,18 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
       continue;
     }
 
-    if (line.startsWith("$$") || line.startsWith("\\[")) {
+    const unwrappedEquation = getStandaloneMath(line);
+    if (unwrappedEquation) {
+      blocks.push(
+        <div className="lesson-display-math-wrapper" key={"auto-math-" + index}>
+          {renderMath(unwrappedEquation, true)}
+        </div>
+      );
+      index++;
+      continue;
+    }
+
+    if (line.startsWith("$") || line.startsWith("\\[")) {
       const closing = line.startsWith("$$") ? "$$" : "\\]";
       let expression = line.slice(2);
       const closingPosition = expression.indexOf(closing);
@@ -362,26 +443,26 @@ function LessonContentRenderer({ content, sectionHeading = "", isStreaming = fal
   }
 
   return (
-    <div className="lesson-rich-content">
+    <div className="lesson-rich-content" ref={richContentRef}>
       {blocks}
       {isStreaming && (
-        <span className="hillion-writing-cursor" aria-label="Hillion is writing" />
+        <span ref={penRef} className="hillion-writing-pen" aria-label="Hillion writing position"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 23.5 21.8 6.7a3.2 3.2 0 0 1 4.5 0l.9.9a3.2 3.2 0 0 1 0 4.5L10.4 28.9 4 30z" fill="#F5D47A" stroke="#263B32" strokeWidth="1.7" strokeLinejoin="round"/><path d="m19.8 8.7 6.5 6.5M4 30l6.4-1.1-5.3-5.4z" fill="#fff" stroke="#263B32" strokeWidth="1.4"/><path d="m4 30 1.1-6.5 5.3 5.4z" fill="#263B32"/></svg></span>
       )}
     </div>
   );
-}
+});
 
 
 
 function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
   const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    let pinchStart = null;
+    const pinchStartRef = { current: null };
     const distance = (touches) => Math.hypot(
       touches[0].clientX - touches[1].clientX,
       touches[0].clientY - touches[1].clientY
@@ -389,21 +470,21 @@ function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
 
     const onStart = (event) => {
       if (event.touches.length !== 2) return;
-      pinchStart = {
+      pinchStartRef.current = {
         distance: Math.max(1, distance(event.touches)),
         zoom: zoomRef.current
       };
     };
 
     const onMove = (event) => {
-      if (event.touches.length !== 2 || !pinchStart) return;
+      if (event.touches.length !== 2 || !pinchStartRef.current) return;
       event.preventDefault();
-      const next = pinchStart.zoom * distance(event.touches) / pinchStart.distance;
+      const next = pinchStartRef.current.zoom * distance(event.touches) / pinchStartRef.current.distance;
       setZoom(Math.min(maxZoom, Math.max(minZoom, Number(next.toFixed(2)))));
     };
 
     const onEnd = (event) => {
-      if (event.touches.length < 2) pinchStart = null;
+      if (event.touches.length < 2) pinchStartRef.current = null;
     };
 
     viewport.addEventListener('touchstart', onStart, { passive: true });
@@ -419,7 +500,7 @@ function usePinchZoom(viewportRef, zoom, setZoom, minZoom = 0.75, maxZoom = 3) {
   }, [viewportRef, setZoom, minZoom, maxZoom]);
 }
 
-function LessonDiagram({ diagram }) {
+const LessonDiagram = memo(function LessonDiagram({ diagram }) {
   const [diagramZoom, setDiagramZoom] = useState(1);
   const diagramViewportRef = useRef(null);
   usePinchZoom(diagramViewportRef, diagramZoom, setDiagramZoom, 0.75, 2.5);
@@ -594,10 +675,10 @@ function LessonDiagram({ diagram }) {
       </div>
     </section>
   );
-}
+});
 
 
-function SectionSvgIllustration({ visual }) {
+const SectionSvgIllustration = memo(function SectionSvgIllustration({ visual }) {
   const [zoom, setZoom] = useState(1);
   const visualViewportRef = useRef(null);
   usePinchZoom(visualViewportRef, zoom, setZoom, 0.75, 3);
@@ -621,7 +702,7 @@ function SectionSvgIllustration({ visual }) {
   };
 
   return (
-    <section className="lesson-visual-illustration">
+    <section className={`lesson-visual-illustration lesson-visual-style-${visual.renderStyle || "flat"}`}>
       <div className="lesson-diagram-heading">
         <h2>{visual.title || 'Educational illustration'}</h2>
         <div className="diagram-zoom-controls">
@@ -663,16 +744,16 @@ function SectionSvgIllustration({ visual }) {
             };
 
             if (Shape === 'path') {
-              return <path {...common} d={String(element.d || '').slice(0, 5000)} />;
+              return <path {...common} key={index} d={String(element.d || '').slice(0, 5000)} />;
             }
 
             if (Shape === 'polyline' || Shape === 'polygon') {
-              return <Shape {...common} points={String(element.points || '').slice(0, 5000)} />;
+              return <Shape {...common} key={index} points={String(element.points || '').slice(0, 5000)} />;
             }
 
             if (Shape === 'text') {
               return (
-                <text {...common}
+                <text {...common} key={index}
                   x={numberValue(element.x, 0)}
                   y={numberValue(element.y, 0)}
                   fontSize={numberValue(element.fontSize, 24)}
@@ -692,7 +773,7 @@ function SectionSvgIllustration({ visual }) {
               if (value !== undefined) coordinates[key] = value;
             }
 
-            return <Shape {...common} {...coordinates} />;
+            return <Shape {...common} key={index} {...coordinates} />;
           })}
         </svg>
       </div>
@@ -704,20 +785,22 @@ function SectionSvgIllustration({ visual }) {
       )}
     </section>
   );
-}
+});
 
-function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
+function Classroom({ topic, title, subject, content, transcript = '', conversation = [], sections = [], clarifications = [], liveSectionHeading = '', liveSectionContent = '', diagram = null, loading, canResume = false, onResume, onInterrupt, onExit, onAskQuestion }) {
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isMicActive, setIsMicActive] = useState(false)
   const micActiveRef = useRef(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [avatarMouthShape, setAvatarMouthShape] = useState('closed')
   const [isComposerOpen, setIsComposerOpen] = useState(false)
   const [questionDraft, setQuestionDraft] = useState('')
   const [isAskingQuestion, setIsAskingQuestion] = useState(false)
   const [questionError, setQuestionError] = useState('')
+  const [selectedPassage, setSelectedPassage] = useState('')
   const recognitionRef = useRef(null)
   const [progressStage, setProgressStage] = useState(0)
+  const recognitionDisposedRef = useRef(false)
   const speechRef = useRef(null)
   const speechQueueRef = useRef([])
   const speechIndexRef = useRef(0)
@@ -727,14 +810,31 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   const [zoom, setZoom] = useState(1)
   const [activeToolbarPanel, setActiveToolbarPanel] = useState(null)
   const [viewMode, setViewMode] = useState('1x')
+  const [voicePreference, setVoicePreference] = useState(() => localStorage.getItem('hillion_voice_preference') || 'neutral')
   const [isExpanded, setIsExpanded] = useState(false)
   const [isFollowingLive, setIsFollowingLive] = useState(true)
   const [showReturnToLive, setShowReturnToLive] = useState(false)
   const boardRef = useRef(null)
+  const avatarControlRef = useRef(null)
   const pinchRef = useRef(null)
   const zoomRef = useRef(zoom)
-  zoomRef.current = zoom
+  useEffect(() => { zoomRef.current = zoom }, [zoom])
 
+  useEffect(() => {
+    const updateAvatarGaze = (event) => {
+      const avatar = avatarControlRef.current
+      if (!avatar) return
+      const bounds = avatar.getBoundingClientRect()
+      const centerX = bounds.left + bounds.width / 2
+      const centerY = bounds.top + bounds.height / 2
+      const x = Math.max(-1.25, Math.min(1.25, (event.clientX - centerX) / Math.max(1, window.innerWidth / 2) * 1.8))
+      const y = Math.max(-0.8, Math.min(0.8, (event.clientY - centerY) / Math.max(1, window.innerHeight / 2) * 1.2))
+      avatar.style.setProperty('--avatar-gaze-x', `${x.toFixed(2)}px`)
+      avatar.style.setProperty('--avatar-gaze-y', `${y.toFixed(2)}px`)
+    }
+    window.addEventListener('pointermove', updateAvatarGaze, { passive: true })
+    return () => window.removeEventListener('pointermove', updateAvatarGaze)
+  }, [])
   // Keep the microphone indicator, native/browser recognition callbacks and
   // confirmation tones in one state transition path. This prevents duplicate
   // tones when Android reports a final result after the user taps Stop.
@@ -747,30 +847,101 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined
-    let disposed = false
+    recognitionDisposedRef.current = false
     const handles = []
 
     HillionSpeechRecognition.addListener('speechResult', event => {
       if (event?.transcript) setQuestionDraft(event.transcript)
       if (event?.isFinal) setMicActive(false)
     }).then(handle => {
-      if (disposed) handle.remove()
+      if (recognitionDisposedRef.current) handle.remove()
       else handles.push(handle)
+    }).catch(error => {
+      if (!recognitionDisposedRef.current) {
+        setQuestionError(`Android speech recognition could not start (${error?.message || 'unknown error'}). You can type your question instead.`)
+      }
     })
 
     HillionSpeechRecognition.addListener('speechError', event => {
       setQuestionError(`Android speech recognition error (${event?.error ?? 'unknown'}). You can type your question instead.`)
       setMicActive(false)
     }).then(handle => {
-      if (disposed) handle.remove()
+      if (recognitionDisposedRef.current) handle.remove()
       else handles.push(handle)
+    }).catch(error => {
+      if (!recognitionDisposedRef.current) {
+        setQuestionError(`Android speech recognition error listener failed (${error?.message || 'unknown error'}). You can type your question instead.`)
+      }
     })
 
     return () => {
-      disposed = true
+      recognitionDisposedRef.current = true
       handles.forEach(handle => handle.remove())
     }
   }, [])
+
+  function speakNextChunk() {
+    const queue = speechQueueRef.current
+    const index = speechIndexRef.current
+    if (!queue[index]) {
+      speechRef.current = null
+      setIsSpeaking(false)
+      return
+    }
+
+    const utterance = new SpeechSynthesisUtterance(queue[index])
+    const selectedVoice = hillionVoiceRef.current
+    if (selectedVoice) {
+      utterance.voice = selectedVoice
+      utterance.lang = selectedVoice.lang
+    } else {
+      utterance.lang = 'en-US'
+    }
+    utterance.rate = 0.92
+    utterance.pitch = 1
+    utterance.onstart = () => {
+      setIsSpeaking(true)
+      setAvatarMouthShape('open')
+    }
+    // Android/browser engines expose word boundaries inconsistently, not true phoneme timing.
+    utterance.onboundary = event => {
+      if (event.name && event.name !== 'word') return
+      const spokenWord = utterance.text.slice(event.charIndex || 0).split(/\s+/)[0] || ''
+      const letters = spokenWord.toLowerCase().replace(/[^a-z]/g, '')
+      const first = letters[0] || ''
+      const vowelCount = (letters.match(/[aeiouy]/g) || []).length
+      if (!letters || /^[bmpfvw]/.test(first)) setAvatarMouthShape('closed')
+      else if (/^[ouw]/.test(first)) setAvatarMouthShape('round')
+      else if (/^[eiy]/.test(first)) setAvatarMouthShape('wide')
+      else setAvatarMouthShape(vowelCount ? 'open' : 'closed')
+    }
+    utterance.onend = () => {
+      setAvatarMouthShape('closed')
+      speechIndexRef.current += 1
+      if (speechIndexRef.current < speechQueueRef.current.length) {
+        speakNextChunk()
+      } else {
+        speechRef.current = null
+        speechQueueRef.current = []
+        speechIndexRef.current = 0
+        setIsSpeaking(false)
+      }
+    }
+    utterance.onerror = (event) => {
+      // Android may report a cancelled utterance while replacing the queue.
+      if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        console.warn('Hillion narration stopped:', event.error)
+      }
+      speechRef.current = null
+      speechQueueRef.current = []
+      speechIndexRef.current = 0
+      setIsSpeaking(false)
+      setAvatarMouthShape('closed')
+    }
+    speechRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+  }
+
 
   useEffect(() => {
     if (!('speechSynthesis' in window) ||
@@ -787,17 +958,22 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
         /^en(-|$)/i.test(voice.lang || '')
       );
 
-      const selected = preferences
-        .map(locale => {
-          const matches = englishVoices.filter(voice =>
-            (voice.lang || '').toLowerCase() === locale
-          );
-
-          return matches.find(voice => voice.localService) ||
-            matches[0] ||
-            null;
-        })
-        .find(Boolean);
+      const localeMatches = preferences.flatMap(locale =>
+        englishVoices.filter(voice => (voice.lang || '').toLowerCase() === locale)
+      );
+      const available = localeMatches.length ? localeMatches : englishVoices;
+      const nameMatches = voice => {
+        const name = String(voice.name || '').toLowerCase();
+        if (voicePreference === 'female') return /female|woman|zira|samantha|victoria|karen|moira|tessa|aria|jenny|susan/.test(name);
+        if (voicePreference === 'male') return /male|man|david|daniel|alex|george|james|guy|ryan|thomas/.test(name);
+        return false;
+      };
+      const selected = voicePreference === 'neutral'
+        ? (available.find(voice => voice.default && voice.localService) ||
+           available.find(voice => voice.default) ||
+           available.find(voice => voice.localService) || available[0] || null)
+        : (available.find(nameMatches) ||
+           available.find(voice => voice.localService) || available[0] || null);
 
       hillionVoiceRef.current = selected;
 
@@ -814,6 +990,10 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
     selectHillionVoice();
     speechEngine.addEventListener?.('voiceschanged', selectHillionVoice);
+    // The voice preference is a dependency of this effect. Remove the old
+    // listener whenever it reruns so Android does not accumulate stale handlers.
+    const removeVoiceListener = () =>
+      speechEngine.removeEventListener?.('voiceschanged', selectHillionVoice);
 
     const previous = autoNarrationPreviousRef.current;
     const current = String(liveSectionContent || '');
@@ -821,6 +1001,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     // A reset or restored draft is not treated as newly written text.
     if (!current.startsWith(previous)) {
       autoNarrationPreviousRef.current = current;
+      removeVoiceListener();
       return;
     }
 
@@ -869,7 +1050,9 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     if (speechQueueRef.current.length && !speechRef.current) {
       speakNextChunk();
     }
-  }, [liveSectionContent, loading]);
+
+    return removeVoiceListener;
+  }, [liveSectionContent, loading, voicePreference]);
 
   const zoomIn = () => setZoom(value => Math.min(2, Number((value + 0.1).toFixed(1))))
   const zoomOut = () => setZoom(value => Math.max(0.5, Number((value - 0.1).toFixed(1))))
@@ -883,50 +1066,6 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     setIsSpeaking(false)
   }
 
-  function speakNextChunk() {
-    const queue = speechQueueRef.current
-    const index = speechIndexRef.current
-    if (!queue[index]) {
-      speechRef.current = null
-      setIsSpeaking(false)
-      return
-    }
-
-    const utterance = new SpeechSynthesisUtterance(queue[index])
-    const selectedVoice = hillionVoiceRef.current
-    if (selectedVoice) {
-      utterance.voice = selectedVoice
-      utterance.lang = selectedVoice.lang
-    } else {
-      utterance.lang = 'en-US'
-    }
-    utterance.rate = 0.92
-    utterance.pitch = 1
-    utterance.onstart = () => setIsSpeaking(true)
-    utterance.onend = () => {
-      speechIndexRef.current += 1
-      if (speechIndexRef.current < speechQueueRef.current.length) {
-        speakNextChunk()
-      } else {
-        speechRef.current = null
-        speechQueueRef.current = []
-        speechIndexRef.current = 0
-        setIsSpeaking(false)
-      }
-    }
-    utterance.onerror = (event) => {
-      // Android may report a cancelled utterance while replacing the queue.
-      if (event.error !== 'canceled' && event.error !== 'interrupted') {
-        console.warn('Hillion narration stopped:', event.error)
-      }
-      speechRef.current = null
-      speechQueueRef.current = []
-      speechIndexRef.current = 0
-      setIsSpeaking(false)
-    }
-    speechRef.current = utterance
-    window.speechSynthesis.speak(utterance)
-  }
 
   function toggleNarration() {
     if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
@@ -1086,8 +1225,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     const board = boardRef.current;
     if (!board) return;
 
-    let touchStartY = 0;
-    let touchMoved = false;
+    const touchStartY = { current: 0 };
 
     const pauseFollowing = () => {
       setIsFollowingLive(false);
@@ -1102,27 +1240,23 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
     const handleTouchStart = (event) => {
       if (event.touches.length !== 1) {
-        touchMoved = false;
         return;
       }
 
-      touchStartY = event.touches[0].clientY;
-      touchMoved = false;
+      touchStartY.current = event.touches[0].clientY;
     };
 
     const handleTouchMove = (event) => {
       if (event.touches.length !== 1) return;
 
-      const movement = event.touches[0].clientY - touchStartY;
+      const movement = event.touches[0].clientY - touchStartY.current;
 
       if (movement > 8) {
-        touchMoved = true;
         pauseFollowing();
       }
     };
 
     const handleTouchEnd = () => {
-      touchMoved = false;
     };
 
     board.addEventListener('wheel', handleWheel, { passive: true });
@@ -1155,10 +1289,7 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
   }, [liveSectionContent, sections.length, isFollowingLive]);
 
   useEffect(() => {
-    if (!loading) {
-      setProgressStage(0)
-      return
-    }
+    if (!loading) return
 
     const timer = setInterval(() => {
       setProgressStage(stage => (stage + 1) % 5)
@@ -1228,7 +1359,8 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     setIsAskingQuestion(true);
     setQuestionError('');
     try {
-      await onAskQuestion(question);
+      await onAskQuestion(question, selectedPassage);
+      setSelectedPassage('');
       setQuestionDraft('');
       setIsComposerOpen(false);
     } catch (error) {
@@ -1315,15 +1447,31 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     <main className="classroom-screen">
 
       <header className="classroom-header">
-        <button onClick={onExit} aria-label="Exit classroom">←</button>
+        <button className="header-icon-button" onClick={onExit} aria-label="Exit classroom" title="Exit classroom">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7" /></svg>
+        </button>
         <span>HILLION AI TUTOR</span>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'menu' ? null : 'menu')} aria-label="Lesson navigation">☰</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'more' ? null : 'more')} aria-label="More options">⋯</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'comments' ? null : 'comments')} aria-label="Comments">▢</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'view' ? null : 'view')} aria-label="Viewing mode">{viewMode}⌄</button>
-        <button onClick={handleDownload} aria-label="Download lesson">↓</button>
-        <button onClick={handleShare} aria-label="Share lesson">↗</button>
-        <button onClick={toggleExpanded} aria-label="Expand classroom">{isExpanded ? '⊡' : '⛶'}</button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'menu' ? null : 'menu')} aria-label="Lesson navigation" title="Lesson navigation">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'more' ? null : 'more')} aria-label="More options" title="More options">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'comments' ? null : 'comments')} aria-label="Comments" title="Lesson discussion">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z" /></svg>
+        </button>
+        <button className="header-icon-button header-view-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'view' ? null : 'view')} aria-label="Viewing mode" title="Viewing mode">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></svg><small>{viewMode}</small>
+        </button>
+        <button className="header-icon-button" onClick={handleDownload} aria-label="Download lesson" title="Download lesson">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={handleShare} aria-label="Share lesson" title="Share lesson">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.5-4.5m-7.5 7 7.5 4.5" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={toggleExpanded} aria-label="Expand classroom" title={isExpanded ? 'Restore classroom' : 'Expand classroom'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">{isExpanded ? <path d="M8 3v5H3m13-5v5h5M8 21v-5H3m13 5v-5h5" /> : <path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" />}</svg>
+        </button>
       </header>
 
       {activeToolbarPanel && (
@@ -1346,6 +1494,26 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
           {activeToolbarPanel === 'more' && (
             <>
               <strong>More classroom options</strong>
+              <label className="voice-preference-control" htmlFor="hillion-voice-preference">Narration voice</label>
+              <select
+                id="hillion-voice-preference"
+                className="voice-preference-select"
+                value={voicePreference}
+                onChange={event => {
+                  const next = event.target.value;
+                  setVoicePreference(next);
+                  localStorage.setItem('hillion_voice_preference', next);
+                  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                  speechRef.current = null;
+                  speechQueueRef.current = [];
+                  speechIndexRef.current = 0;
+                  setIsSpeaking(false);
+                }}
+              >
+                <option value="female">Female voice</option>
+                <option value="male">Male voice</option>
+                <option value="neutral">Neutral / system default</option>
+              </select>
               <button onClick={resetZoom}>Reset board zoom to 100%</button>
               <button onClick={() => setIsTranscriptOpen(!isTranscriptOpen)}>Toggle live transcript</button>
               <button onClick={handleDownload}>Download lesson notes</button>
@@ -1396,7 +1564,21 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
         <button onClick={zoomIn} aria-label="Zoom in" disabled={zoom >= 2}>+</button>
       </nav>
 
-      <section ref={boardRef} className="classroom-board">
+      <section ref={boardRef} className="classroom-board" onMouseUp={() => {
+        const text = window.getSelection?.()?.toString?.().trim() || '';
+        if (text.length > 2 && text.length <= 1600) {
+          setSelectedPassage(text);
+          setIsComposerOpen(true);
+        }
+      }} onTouchEnd={() => {
+        window.setTimeout(() => {
+          const text = window.getSelection?.()?.toString?.().trim() || '';
+          if (text.length > 2 && text.length <= 1600) {
+            setSelectedPassage(text);
+            setIsComposerOpen(true);
+          }
+        }, 0);
+      }}>
         <div className="board-paper" style={{ zoom: zoom }}>
           {subject && (
             <div className="lesson-subject">{subject}</div>
@@ -1407,9 +1589,9 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
           {sections.length > 0 || liveSectionContent ? (
             <div className="lesson-content">
               {sections.map((section, index) => (
+                <Fragment key={section.id || index}>
                 <article
                   className={`lesson-section lesson-section-${section.type || 'explanation'}`}
-                  key={index}
                 >
                   <h2>{section.heading || section.type || 'Lesson section'}</h2>
                   <div className="lesson-section-content">
@@ -1457,6 +1639,16 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
                     return null;
                   })}
                 </article>
+                {clarifications.filter(item => item.afterSectionIndex === index).map(item => (
+                  <article className="lesson-section-clarification" key={item.id}>
+                    <h3>{item.heading || 'Clarification'}</h3>
+                    {item.clarifiedPassage && <blockquote>{item.clarifiedPassage}</blockquote>}
+                    <div className="lesson-section-content">
+                      <LessonContentRenderer content={item.content} sectionHeading={item.heading} />
+                    </div>
+                  </article>
+                ))}
+                </Fragment>
               ))}
               {liveSectionContent && (
                 <article className="lesson-section lesson-section-explanation lesson-section-live">
@@ -1466,6 +1658,15 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
                   </div>
                 </article>
               )}
+              {clarifications.filter(item => item.targetLiveDraft || item.afterSectionIndex === null).map(item => (
+                <article className="lesson-section-clarification" key={item.id}>
+                  <h3>{item.heading || 'Clarification'}</h3>
+                  {item.clarifiedPassage && <blockquote>{item.clarifiedPassage}</blockquote>}
+                  <div className="lesson-section-content">
+                    <LessonContentRenderer content={item.content} sectionHeading={item.heading} />
+                  </div>
+                </article>
+              ))}
             </div>
           ) : content ? (
             <div className="lesson-content"><LessonContentRenderer content={content} /></div>
@@ -1527,12 +1728,19 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
       {isComposerOpen && (
         <form className="classroom-question-composer" onSubmit={submitClassroomQuestion}>
           <label htmlFor="hillion-follow-up">Ask a follow-up question</label>
+          {selectedPassage && (
+            <div className="selected-passage-context">
+              <strong>Passage selected for clarification</strong>
+              <p>“{selectedPassage}”</p>
+              <button type="button" onClick={() => setSelectedPassage('')}>Clear selection</button>
+            </div>
+          )}
           <div className="classroom-question-row">
             <input
               id="hillion-follow-up"
               value={questionDraft}
               onChange={event => setQuestionDraft(event.target.value)}
-              placeholder="Ask Hillion to explain, clarify or add an example..."
+              placeholder={selectedPassage ? "Ask about the selected passage, or tap Send to explain it..." : "Ask Hillion to explain, clarify or add an example..."}
               disabled={isAskingQuestion}
             />
             <button type="submit" disabled={!questionDraft.trim() || isAskingQuestion}>
@@ -1545,8 +1753,8 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
 
       <footer className="floating-controls" aria-label="Classroom controls">
         <div className="control-cluster control-presence">
-          <button className={`avatar-control ${isSpeaking ? 'avatar-speaking' : ''}`} aria-label={isSpeaking ? 'Hillion is speaking' : 'Hillion voice indicator'} title={isSpeaking ? 'Hillion is speaking' : 'Hillion tutor'}>
-            <AvatarIcon speaking={isSpeaking} />
+          <button ref={avatarControlRef} className={`avatar-control ${isSpeaking ? 'avatar-speaking' : ''}`} aria-label={isSpeaking ? 'Hillion is speaking' : 'Hillion voice indicator'} title={isSpeaking ? 'Hillion is speaking' : 'Hillion tutor'}>
+            <AvatarIcon speaking={isSpeaking} mouthShape={avatarMouthShape} />
             <span className="avatar-badge">✦</span>
           </button>
         </div>

@@ -30,73 +30,6 @@ const makeShape = (type, values = {}) => ({
   ...values
 });
 
-function createCellVisual(kind, title, description, caption) {
-  const plant = /plant/i.test(kind + ' ' + title);
-
-  const elements = [
-    makeShape('ellipse', {
-      cx: 500, cy: 500, rx: 390, ry: 300,
-      fill: plant ? '#E8F1D9' : '#F8E9DC',
-      stroke: COLORS.green, strokeWidth: 9
-    }),
-    makeShape('ellipse', {
-      cx: 500, cy: 500, rx: 345, ry: 255,
-      fill: '#FFF9ED', stroke: '#B9C9A8', strokeWidth: 4
-    }),
-    makeShape('ellipse', {
-      cx: 490, cy: 480, rx: 105, ry: 85,
-      fill: COLORS.palePurple, stroke: COLORS.purple, strokeWidth: 5
-    }),
-    makeText(490, 485, 'Nucleus', { fontSize: 25 }),
-    makeShape('ellipse', {
-      cx: 300, cy: 390, rx: 65, ry: 30,
-      fill: COLORS.paleGreen, stroke: COLORS.green, strokeWidth: 4
-    }),
-    makeText(300, 400, 'Organelle', { fontSize: 17 }),
-    makeShape('ellipse', {
-      cx: 690, cy: 390, rx: 60, ry: 30,
-      fill: COLORS.paleGold, stroke: COLORS.gold, strokeWidth: 4
-    }),
-    makeText(690, 400, 'Organelle', { fontSize: 17 }),
-    makeShape('ellipse', {
-      cx: 320, cy: 650, rx: 45, ry: 25,
-      fill: COLORS.paleRed, stroke: COLORS.red, strokeWidth: 4
-    }),
-    makeShape('ellipse', {
-      cx: 680, cy: 650, rx: 45, ry: 25,
-      fill: COLORS.paleBlue, stroke: COLORS.blue, strokeWidth: 4
-    }),
-    makeText(500, 875, plant ? 'Plant cell — schematic' : 'Animal cell — schematic', {
-      fontSize: 28,
-      fontWeight: 700
-    })
-  ];
-
-  if (plant) {
-    elements.push(
-      makeShape('rect', {
-        x: 110, y: 200, width: 780, height: 600,
-        fill: 'none', stroke: '#83A85C', strokeWidth: 12
-      }),
-      makeShape('ellipse', {
-        cx: 500, cy: 650, rx: 150, ry: 65,
-        fill: '#E2EFCB', stroke: '#83A85C', strokeWidth: 4
-      }),
-      makeText(500, 660, 'Large vacuole', { fontSize: 23 })
-    );
-  }
-
-  return {
-    renderer: 'svg',
-    kind: 'cell',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 1000',
-    elements
-  };
-}
-
 function createMoleculeVisual(title, description, caption) {
   const source = (title + ' ' + description + ' ' + caption).toLowerCase();
 
@@ -152,6 +85,100 @@ function createMoleculeVisual(title, description, caption) {
       ],
       bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]],
       shape: 'Trigonal pyramidal molecular geometry (2D schematic)'
+    };
+  } else if (/\b(oxygen|o2)\b/.test(source)) {
+    molecule = {
+      formula: 'O₂',
+      name: 'Oxygen',
+      atoms: [
+        { x: 350, y: 420, label: 'O', color: COLORS.paleRed, stroke: COLORS.red, radius: 78 },
+        { x: 650, y: 420, label: 'O', color: COLORS.paleRed, stroke: COLORS.red, radius: 78 }
+      ],
+      bonds: [[0, 1, 2]],
+      shape: 'Diatomic molecule — double covalent bond'
+    };
+  } else if (/\b(nitrogen|n2)\b/.test(source)) {
+    molecule = {
+      formula: 'N₂',
+      name: 'Nitrogen',
+      atoms: [
+        { x: 350, y: 420, label: 'N', color: COLORS.palePurple, stroke: COLORS.purple, radius: 78 },
+        { x: 650, y: 420, label: 'N', color: COLORS.palePurple, stroke: COLORS.purple, radius: 78 }
+      ],
+      bonds: [[0, 1, 3]],
+      shape: 'Diatomic molecule — triple covalent bond'
+    };
+  } else if (/\b(hydrogen molecule|h2)\b/.test(source)) {
+    molecule = {
+      formula: 'H₂',
+      name: 'Hydrogen',
+      atoms: [
+        { x: 350, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 },
+        { x: 650, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 }
+      ],
+      bonds: [[0, 1, 1]],
+      shape: 'Diatomic molecule — single covalent bond'
+    };
+  } else if (/\b(ethene|ethylene|c2h4)\b/.test(source)) {
+    molecule = {
+      formula: 'C₂H₄',
+      name: 'Ethene',
+      atoms: [
+        { x: 420, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 580, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 300, y: 285, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 300, y: 575, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 700, y: 285, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 700, y: 575, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 }
+      ],
+      bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]],
+      shape: 'Planar carbon–carbon double bond (schematic)'
+    };
+  } else if (/\b(ethyne|acetylene|c2h2)\b/.test(source)) {
+    molecule = {
+      formula: 'C₂H₂',
+      name: 'Ethyne',
+      atoms: [
+        { x: 420, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 580, y: 430, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 48 },
+        { x: 230, y: 430, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 },
+        { x: 770, y: 430, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 30 }
+      ],
+      bonds: [[0, 1, 3], [0, 2, 1], [1, 3, 1]],
+      shape: 'Linear carbon–carbon triple bond'
+    };
+  } else if (/\b(benzene|c6h6)\b/.test(source)) {
+    const ring = [
+      { x: 500, y: 235 }, { x: 665, y: 330 }, { x: 665, y: 520 },
+      { x: 500, y: 615 }, { x: 335, y: 520 }, { x: 335, y: 330 }
+    ];
+    const hydrogen = [
+      { x: 500, y: 95 }, { x: 790, y: 255 }, { x: 790, y: 595 },
+      { x: 500, y: 755 }, { x: 210, y: 595 }, { x: 210, y: 255 }
+    ];
+    molecule = {
+      formula: 'C₆H₆',
+      name: 'Benzene',
+      atoms: [
+        ...ring.map(point => ({ ...point, label: 'C', color: COLORS.paleGold, stroke: COLORS.gold, radius: 39 })),
+        ...hydrogen.map(point => ({ ...point, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 27 }))
+      ],
+      bonds: [
+        [0, 1, 2], [1, 2, 1], [2, 3, 2], [3, 4, 1], [4, 5, 2], [5, 0, 1],
+        [0, 6, 1], [1, 7, 1], [2, 8, 1], [3, 9, 1], [4, 10, 1], [5, 11, 1]
+      ],
+      shape: 'Planar six-membered aromatic ring; alternating bonds are a simplified representation'
+    };
+  } else if (/\b(hydrogen chloride|hcl)\b/.test(source)) {
+    molecule = {
+      formula: 'HCl',
+      name: 'Hydrogen chloride',
+      atoms: [
+        { x: 350, y: 420, label: 'H', color: COLORS.paleBlue, stroke: COLORS.blue, radius: 68 },
+        { x: 650, y: 420, label: 'Cl', color: COLORS.paleGreen, stroke: COLORS.green, radius: 78 }
+      ],
+      bonds: [[0, 1, 1]],
+      shape: 'Diatomic molecule — polar covalent bond'
     };
   }
 
@@ -219,124 +246,6 @@ function createMoleculeVisual(title, description, caption) {
   };
 }
 
-function createGraphVisual(title, description, caption) {
-  const elements = [
-    makeShape('line', {
-      x1: 150, y1: 750, x2: 850, y2: 750,
-      stroke: COLORS.ink, strokeWidth: 5
-    }),
-    makeShape('line', {
-      x1: 200, y1: 800, x2: 200, y2: 150,
-      stroke: COLORS.ink, strokeWidth: 5
-    }),
-    makeShape('path', {
-      d: 'M 220 720 Q 380 680 480 520 T 820 180',
-      fill: 'none',
-      stroke: COLORS.blue,
-      strokeWidth: 12
-    }),
-    makeText(500, 830, 'Independent variable', { fontSize: 24 }),
-    makeText(100, 120, 'Dependent variable', { fontSize: 22 }),
-    makeText(510, 100, 'Illustrative graph', {
-      fontSize: 29,
-      fontWeight: 700
-    })
-  ];
-
-  return {
-    renderer: 'svg',
-    kind: 'graph',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 900',
-    elements
-  };
-}
-
-function createTimelineVisual(title, description, caption) {
-  const elements = [
-    makeShape('line', {
-      x1: 130, y1: 450, x2: 870, y2: 450,
-      stroke: COLORS.muted, strokeWidth: 8
-    })
-  ];
-
-  const positions = [
-    { x: 200, year: 'Event 1' },
-    { x: 500, year: 'Event 2' },
-    { x: 800, year: 'Event 3' }
-  ];
-
-  positions.forEach((item, index) => {
-    elements.push(
-      makeShape('circle', {
-        cx: item.x,
-        cy: 450,
-        r: 24,
-        fill: [COLORS.green, COLORS.blue, COLORS.gold][index],
-        stroke: COLORS.ink,
-        strokeWidth: 3
-      }),
-      makeText(item.x, 390, item.year, { fontSize: 24 }),
-      makeText(item.x, 525, 'Date / period', { fontSize: 19 })
-    );
-  });
-
-  return {
-    renderer: 'svg',
-    kind: 'timeline',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 850',
-    elements
-  };
-}
-
-function createCircuitVisual(title, description, caption) {
-  const elements = [
-    makeShape('path', {
-      d: 'M 250 250 H 750 V 650 H 250 Z',
-      fill: 'none',
-      stroke: COLORS.ink,
-      strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 250, y1: 400, x2: 250, y2: 500,
-      stroke: COLORS.ink, strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 220, y1: 430, x2: 280, y2: 430,
-      stroke: COLORS.red, strokeWidth: 8
-    }),
-    makeShape('line', {
-      x1: 230, y1: 470, x2: 270, y2: 470,
-      stroke: COLORS.red, strokeWidth: 4
-    }),
-    makeShape('circle', {
-      cx: 500, cy: 250, r: 65,
-      fill: COLORS.paleGold, stroke: COLORS.gold, strokeWidth: 5
-    }),
-    makeText(500, 265, 'R', { fontSize: 43, fontWeight: 700 }),
-    makeText(500, 760, 'Simple circuit schematic', {
-      fontSize: 28,
-      fontWeight: 700
-    })
-  ];
-
-  return {
-    renderer: 'svg',
-    kind: 'circuit',
-    title,
-    description,
-    caption,
-    viewBox: '0 0 1000 850',
-    elements
-  };
-}
-
-
 // Render AI-authored, subject-specific diagrams from a tightly constrained SVG
 // primitive schema. Geometry and labels come from the lesson planner; the app
 // validates every field and never executes model-provided markup.
@@ -396,8 +305,11 @@ function createStructuredVisual(visual) {
   // dropping one part can change anatomy, apparatus, or vector relationships.
   if (elements.some(element => element === null)) return null;
   if (elements.filter(item => item.type === 'text').length < 1) return null;
+  const renderStyle = ['isometric-3d', 'technical-illustration', 'hand-drawn', 'flat'].includes(visual.renderStyle)
+    ? visual.renderStyle
+    : 'flat';
   return {
-    renderer: 'svg', kind: 'ai-structured-diagram',
+    renderer: 'svg', kind: 'ai-structured-diagram', renderStyle,
     title: String(visual.title || 'Educational diagram').slice(0, 120),
     description: String(visual.description || '').slice(0, 500),
     caption: String(visual.caption || '').slice(0, 300),
@@ -405,38 +317,86 @@ function createStructuredVisual(visual) {
   };
 }
 
-function identifyTemplate(visual) {
-  const text = [
-    visual.kind,
-    visual.title,
-    visual.purpose,
-    visual.description
-  ].join(' ').toLowerCase();
+function createFunctionGraphVisual(graphType, title, description, caption) {
+  const elements = [];
+  const xAxis = graphType === 'quadratic' ? 850 : 600;
+  const xMin = graphType === 'quadratic' ? -3 : -5;
+  const xMax = graphType === 'quadratic' ? 3 : 5;
+  const xScale = graphType === 'quadratic' ? 100 : 60;
+  const yScale = graphType === 'quadratic' ? 55 : 50;
+  const mapX = value => 500 + value * xScale;
+  const mapY = value => xAxis - value * yScale;
+  const gridX = graphType === 'quadratic' ? [-3, -2, -1, 0, 1, 2, 3] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+  const gridY = graphType === 'quadratic' ? [0, 2, 4, 6, 8] : [-4, -2, 0, 2, 4];
 
-  if (/\b(plant cell|animal cell|cell structure|cell organelles)\b/.test(text)) {
-    return 'cell';
+  gridX.forEach(value => elements.push(makeShape('line', {
+    x1: mapX(value), y1: 280, x2: mapX(value), y2: 900,
+    stroke: '#E8EEE9', strokeWidth: 1
+  })));
+  gridY.forEach(value => elements.push(makeShape('line', {
+    x1: 150, y1: mapY(value), x2: 850, y2: mapY(value),
+    stroke: '#E8EEE9', strokeWidth: 1
+  })));
+
+  elements.push(
+    makeShape('line', { x1: 150, y1: xAxis, x2: 860, y2: xAxis, stroke: COLORS.ink, strokeWidth: 5 }),
+    makeShape('line', { x1: 500, y1: 900, x2: 500, y2: 260, stroke: COLORS.ink, strokeWidth: 5 }),
+    makeText(875, xAxis + 8, 'x', { fontSize: 28, fontWeight: 700 }),
+    makeText(520, 250, 'y', { fontSize: 28, fontWeight: 700 })
+  );
+
+  gridX.forEach(value => elements.push(makeText(mapX(value), xAxis + 35, String(value), { fontSize: 17 })));
+  gridY.forEach(value => {
+    if (value !== 0) elements.push(makeText(470, mapY(value) + 6, String(value), { fontSize: 17, textAnchor: 'end' }));
+  });
+
+  const points = [];
+  const step = graphType === 'quadratic' ? 0.2 : 0.25;
+  for (let x = xMin; x <= xMax + 0.0001; x += step) {
+    const y = graphType === 'quadratic' ? x * x : x;
+    points.push(mapX(x).toFixed(1) + ',' + mapY(y).toFixed(1));
   }
+  elements.push(makeShape('polyline', {
+    points: points.join(' '),
+    fill: 'none',
+    stroke: COLORS.green,
+    strokeWidth: 7
+  }));
+  elements.push(
+    makeText(500, 105, graphType === 'quadratic' ? 'Standard quadratic function: y = x²' : 'Standard linear function: y = x', {
+      fontSize: 28, fontWeight: 700
+    }),
+    makeText(500, 970, graphType === 'quadratic'
+      ? 'Parent parabola; other quadratic graphs may be shifted or stretched'
+      : 'Parent line; other linear graphs may have a different slope or intercept', {
+      fontSize: 18
+    })
+  );
 
-  if (/\b(water molecule|molecule|molecular structure|chemical bond)\b/.test(text)) {
-    return 'molecule';
-  }
-
-  if (/\b(graph|coordinate|plot|linear function|quadratic function)\b/.test(text)) {
-    return 'graph';
-  }
-
-  if (/\b(timeline|historical sequence|chronology)\b/.test(text)) {
-    return 'timeline';
-  }
-
-  if (/\b(circuit|electrical circuit)\b/.test(text)) {
-    return 'circuit';
-  }
-
-  return null;
+  return {
+    renderer: 'svg',
+    kind: 'function-graph',
+    title,
+    description,
+    caption: caption || (graphType === 'quadratic' ? 'The standard parabola y = x².' : 'The standard straight line y = x.'),
+    viewBox: '0 0 1000 1000',
+    elements
+  };
 }
 
-export function generateSectionVisuals(visualPlan = [], context = {}) {
+function identifyTemplate(visual) {
+  const text = [visual.kind, visual.title, visual.purpose, visual.description]
+    .join(' ')
+    .toLowerCase();
+
+  if (/\b(parabola|quadratic function graph|graph of y\s*=\s*x\s*(?:\^?2|²))\b/.test(text)) return 'quadratic-graph';
+  if (/\b(linear parent function graph|graph of y\s*=\s*x\b|straight line graph y\s*=\s*x)\b/.test(text)) return 'linear-graph';
+  return /\b(water molecule|molecule|molecular structure|chemical bond|benzene|ethene|ethylene|ethyne|acetylene)\b/.test(text)
+    ? 'molecule'
+    : null;
+}
+
+export function generateSectionVisuals(visualPlan = []) {
   // Visuals must be explicitly planned by the lesson model. Never infer a
   // diagram merely from a topic heading: that previously produced generic,
   // potentially misleading cell/graph/timeline illustrations.
@@ -457,6 +417,8 @@ export function generateSectionVisuals(visualPlan = [], context = {}) {
       // by the known molecular formula. Other subjects require AI-authored,
       // validated primitives rather than placeholder diagrams.
       if (kind === 'molecule') return createMoleculeVisual(title, description, caption);
+      if (kind === 'quadratic-graph') return createFunctionGraphVisual('quadratic', title, description, caption);
+      if (kind === 'linear-graph') return createFunctionGraphVisual('linear', title, description, caption);
       return null;
     })
     .filter(Boolean)

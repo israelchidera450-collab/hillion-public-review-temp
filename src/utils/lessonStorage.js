@@ -6,6 +6,15 @@ const DURABLE_DB_NAME = 'hillion_lesson_backup_v1';
 const DURABLE_STORE_NAME = 'records';
 const ACTIVE_CLEARED_KEY = 'hillion_active_lesson_cleared_v1';
 let durableDbPromise = null;
+let durableWriteQueue = Promise.resolve();
+
+// IndexedDB mirrors must commit in the same order as synchronous local writes.
+// Otherwise a delayed delete can race a newer save and leave a stale recovery copy.
+function enqueueDurableOperation(operation) {
+  const result = durableWriteQueue.then(operation, operation);
+  durableWriteQueue = result.catch(() => false);
+  return result;
+}
 
 function parseRecord(raw) {
   if (!raw) return null;
@@ -38,47 +47,53 @@ function openDurableDatabase() {
   return durableDbPromise;
 }
 
-async function removeDurableValue(key) {
-  try {
-    const db = await openDurableDatabase();
-    if (!db) return false;
-    await new Promise((resolve, reject) => {
-      const transaction = db.transaction(DURABLE_STORE_NAME, 'readwrite');
-      transaction.objectStore(DURABLE_STORE_NAME).delete(key);
-      transaction.oncomplete = resolve;
-      transaction.onerror = () => reject(transaction.error || new Error('IndexedDB backup delete failed'));
-      transaction.onabort = () => reject(transaction.error || new Error('IndexedDB backup delete aborted'));
-    });
-    return true;
-  } catch (error) {
-    console.warn('[HILLION STORAGE] IndexedDB backup cleanup failed.', error);
-    return false;
-  }
+function removeDurableValue(key) {
+  return enqueueDurableOperation(async () => {
+    try {
+      const db = await openDurableDatabase();
+      if (!db) return false;
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(DURABLE_STORE_NAME, 'readwrite');
+        transaction.objectStore(DURABLE_STORE_NAME).delete(key);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error('IndexedDB backup delete failed'));
+        transaction.onabort = () => reject(transaction.error || new Error('IndexedDB backup delete aborted'));
+      });
+      return true;
+    } catch (error) {
+      console.warn('[HILLION STORAGE] IndexedDB backup cleanup failed.', error);
+      return false;
+    }
+  });
 }
 
-async function mirrorStorageValue(key, serialized) {
-  try {
-    const db = await openDurableDatabase();
-    if (!db) return false;
-    await new Promise((resolve, reject) => {
-      const transaction = db.transaction(DURABLE_STORE_NAME, 'readwrite');
-      transaction.objectStore(DURABLE_STORE_NAME).put({
-        key,
-        value: serialized,
-        savedAt: new Date().toISOString()
+function mirrorStorageValue(key, serialized) {
+  return enqueueDurableOperation(async () => {
+    try {
+      const db = await openDurableDatabase();
+      if (!db) return false;
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(DURABLE_STORE_NAME, 'readwrite');
+        transaction.objectStore(DURABLE_STORE_NAME).put({
+          key,
+          value: serialized,
+          savedAt: new Date().toISOString()
+        });
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error('IndexedDB backup write failed'));
+        transaction.onabort = () => reject(transaction.error || new Error('IndexedDB backup write aborted'));
       });
-      transaction.oncomplete = resolve;
-      transaction.onerror = () => reject(transaction.error || new Error('IndexedDB backup write failed'));
-      transaction.onabort = () => reject(transaction.error || new Error('IndexedDB backup write aborted'));
-    });
-    return true;
-  } catch (error) {
-    console.warn('[HILLION STORAGE] IndexedDB backup write failed; localStorage copy remains available.', error);
-    return false;
-  }
+      return true;
+    } catch (error) {
+      console.warn('[HILLION STORAGE] IndexedDB backup write failed; localStorage copy remains available.', error);
+      return false;
+    }
+  });
 }
 
 export async function restoreStorageFromIndexedDB() {
+  // Wait for this session's queued mirror writes/deletes before reading recovery data.
+  await durableWriteQueue.catch(() => false);
   const db = await openDurableDatabase();
   if (!db) return { restored: [], available: false };
   const keys = [LESSONS_KEY, ACTIVE_LESSON_KEY];
