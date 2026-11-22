@@ -21,6 +21,7 @@ export async function checkAIAvailability({ signal } = {}) {
 
   if (isAndroidNative()) {
     const status = await HillionInference.getStatus()
+    if (signal?.aborted) throw asAbortError()
     if (!status.modelReady) {
       throw new Error('No on-device AI model is installed. Open Settings and import your Qwen GGUF model first.')
     }
@@ -40,12 +41,16 @@ async function requestAndroidAI(payload, signal) {
   if (signal?.aborted) throw asAbortError()
 
   const status = await HillionInference.getStatus()
+  if (signal?.aborted) throw asAbortError()
   if (!status.modelReady) {
     throw new Error('No on-device AI model is installed. Open Settings and import your Qwen GGUF model first.')
   }
   if (!status.loaded) {
     // The model is loaded once into native memory and reused for later requests.
     await HillionInference.loadModel()
+    // Model loading can take several seconds on a phone. Honour Stop before
+    // registering a new native generation request once loading has completed.
+    if (signal?.aborted) throw asAbortError()
   }
 
   const requestId = makeRequestId()
