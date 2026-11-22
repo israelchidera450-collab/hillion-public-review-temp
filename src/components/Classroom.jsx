@@ -1419,15 +1419,31 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     <main className="classroom-screen">
 
       <header className="classroom-header">
-        <button onClick={onExit} aria-label="Exit classroom">←</button>
+        <button className="header-icon-button" onClick={onExit} aria-label="Exit classroom" title="Exit classroom">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7" /></svg>
+        </button>
         <span>HILLION AI TUTOR</span>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'menu' ? null : 'menu')} aria-label="Lesson navigation">☰</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'more' ? null : 'more')} aria-label="More options">⋯</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'comments' ? null : 'comments')} aria-label="Comments">▢</button>
-        <button onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'view' ? null : 'view')} aria-label="Viewing mode">{viewMode}⌄</button>
-        <button onClick={handleDownload} aria-label="Download lesson">↓</button>
-        <button onClick={handleShare} aria-label="Share lesson">↗</button>
-        <button onClick={toggleExpanded} aria-label="Expand classroom">{isExpanded ? '⊡' : '⛶'}</button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'menu' ? null : 'menu')} aria-label="Lesson navigation" title="Lesson navigation">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'more' ? null : 'more')} aria-label="More options" title="More options">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'comments' ? null : 'comments')} aria-label="Comments" title="Lesson discussion">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z" /></svg>
+        </button>
+        <button className="header-icon-button header-view-button" onClick={() => setActiveToolbarPanel(activeToolbarPanel === 'view' ? null : 'view')} aria-label="Viewing mode" title="Viewing mode">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></svg><small>{viewMode}</small>
+        </button>
+        <button className="header-icon-button" onClick={handleDownload} aria-label="Download lesson" title="Download lesson">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={handleShare} aria-label="Share lesson" title="Share lesson">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.5-4.5m-7.5 7 7.5 4.5" /></svg>
+        </button>
+        <button className="header-icon-button" onClick={toggleExpanded} aria-label="Expand classroom" title={isExpanded ? 'Restore classroom' : 'Expand classroom'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">{isExpanded ? <path d="M8 3v5H3m13-5v5h5M8 21v-5H3m13 5v-5h5" /> : <path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" />}</svg>
+        </button>
       </header>
 
       {activeToolbarPanel && (
