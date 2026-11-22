@@ -121,7 +121,7 @@ function renderMath(expression, displayMode = false) {
 }
 
 function renderInlineText(text) {
-  const pattern = /(\\$\\$[\\s\\S]+?\\$\\$|\\$[^$\\n]+\\$|\\\\\\([\\s\\S]+?\\\\\\)|\\\\\\[[\\s\\S]+?\\\\\\]|\\*\\*.*?\\*\\*|==.*?==|`.*?`|\\*[^*\\n]+\\*)/g;
+  const pattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]|\*\*.*?\*\*|==.*?==|\`.*?\`|\*[^*\n]+\*)/g;
 
   return String(text).split(pattern).map((part, index) => {
     if (part.startsWith("$$") && part.endsWith("$$")) {
@@ -246,10 +246,10 @@ const LessonContentRenderer = memo(function LessonContentRenderer({ content, sec
   // while leaving ordinary prose and chemical formula text untouched.
   const getStandaloneMath = (value) => {
     let candidate = value.trim();
-    candidate = candidate.replace(/^(?:formula|equation|working|substitution|final answer)\\s*:\\s*/i, "");
+    candidate = candidate.replace(/^(?:formula|equation|working|substitution|final answer)\s*:\s*/i, "");
     if (!candidate || candidate.length > 110 || !candidate.includes("=")) return null;
-    if (/\\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are)\\b/i.test(candidate)) return null;
-    const hasMathSyntax = /[+*/×÷^_=<>\\\\]|\\\\(?:frac|sqrt|times|cdot|pi|sum|sqrt|left|right)|[₀-₉⁰-⁹]/.test(candidate);
+    if (/\b(?:the|and|with|from|because|therefore|where|when|this|that|is|are)\b/i.test(candidate)) return null;
+    const hasMathSyntax = /[+*/×÷^_=<>\\]|\\(?:frac|sqrt|times|cdot|pi|sum|left|right)|[₀-₉⁰-⁹]/.test(candidate);
     const wordCount = (candidate.match(/[A-Za-z]+/g) || []).length;
     if (!hasMathSyntax || wordCount > 9) return null;
     return candidate;
