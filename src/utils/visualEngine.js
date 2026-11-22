@@ -86,10 +86,7 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]],
       shape: 'Trigonal pyramidal molecular geometry (2D schematic)'
     };
-  }
-
-
-  } else if (/\\b(oxygen|o2)\\b/.test(source)) {
+  } else if (/\b(oxygen|o2)\b/.test(source)) {
     molecule = {
       formula: 'O₂',
       name: 'Oxygen',
@@ -100,7 +97,7 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 2]],
       shape: 'Diatomic molecule — double covalent bond'
     };
-  } else if (/\\b(nitrogen|n2)\\b/.test(source)) {
+  } else if (/\b(nitrogen|n2)\b/.test(source)) {
     molecule = {
       formula: 'N₂',
       name: 'Nitrogen',
@@ -111,7 +108,7 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 3]],
       shape: 'Diatomic molecule — triple covalent bond'
     };
-  } else if (/\\b(hydrogen molecule|h2)\\b/.test(source)) {
+  } else if (/\b(hydrogen molecule|h2)\b/.test(source)) {
     molecule = {
       formula: 'H₂',
       name: 'Hydrogen',
@@ -122,7 +119,7 @@ function createMoleculeVisual(title, description, caption) {
       bonds: [[0, 1, 1]],
       shape: 'Diatomic molecule — single covalent bond'
     };
-  } else if (/\\b(hydrogen chloride|hcl)\\b/.test(source)) {
+  } else if (/\b(hydrogen chloride|hcl)\b/.test(source)) {
     molecule = {
       formula: 'HCl',
       name: 'Hydrogen chloride',
