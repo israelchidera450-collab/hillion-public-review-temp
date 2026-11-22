@@ -827,14 +827,22 @@ function Classroom({ topic, title, subject, content, transcript = '', conversati
     }).then(handle => {
       if (recognitionDisposedRef.current) handle.remove()
       else handles.push(handle)
+    }).catch(error => {
+      if (!recognitionDisposedRef.current) {
+        setQuestionError(`Android speech recognition could not start (${error?.message || 'unknown error'}). You can type your question instead.`)
+      }
     })
 
     HillionSpeechRecognition.addListener('speechError', event => {
       setQuestionError(`Android speech recognition error (${event?.error ?? 'unknown'}). You can type your question instead.`)
       setMicActive(false)
     }).then(handle => {
-      if (disposed) handle.remove()
+      if (recognitionDisposedRef.current) handle.remove()
       else handles.push(handle)
+    }).catch(error => {
+      if (!recognitionDisposedRef.current) {
+        setQuestionError(`Android speech recognition error listener failed (${error?.message || 'unknown error'}). You can type your question instead.`)
+      }
     })
 
     return () => {
