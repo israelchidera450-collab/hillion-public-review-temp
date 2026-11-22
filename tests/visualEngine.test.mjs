@@ -61,3 +61,23 @@ test('does not infer a generic visual from a lesson heading', () => {
   });
   assert.deepEqual(visuals, []);
 });
+
+test('renders known diatomic chemistry structures with the correct bond order', () => {
+  const cases = [
+    { title: 'Oxygen molecule O2', bondCount: 2, formula: 'O₂' },
+    { title: 'Nitrogen molecule N2', bondCount: 3, formula: 'N₂' },
+    { title: 'Hydrogen molecule H2', bondCount: 1, formula: 'H₂' },
+    { title: 'Hydrogen chloride HCl', bondCount: 1, formula: 'HCl' }
+  ];
+
+  for (const item of cases) {
+    const [visual] = generateSectionVisuals([{ kind: 'molecule', title: item.title }]);
+    assert.ok(visual, item.title + ' should render');
+    assert.equal(
+      visual.elements.filter(element => element.type === 'line').length,
+      item.bondCount,
+      item.title + ' should have the correct bond order'
+    );
+    assert.ok(visual.elements.some(element => element.type === 'text' && element.text.includes(item.formula)));
+  }
+});
